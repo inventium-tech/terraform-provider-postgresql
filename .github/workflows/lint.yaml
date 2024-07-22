@@ -1,5 +1,5 @@
 name: lint
-run-name: "🔎 Lint - ${github.ref_name}"
+run-name: 🔎 Lint - ${github.ref_name}
 
 on:
   push: null
