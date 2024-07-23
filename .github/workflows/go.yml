@@ -9,14 +9,14 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   go-setup:
     name: Go Setup
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 💻
-        uses: actions/checkout@v4.1.7
-
       - name: Setup Go environment ⚙️
         uses: actions/setup-go@v5.0.2
         with:

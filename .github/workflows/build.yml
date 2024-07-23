@@ -23,6 +23,9 @@ jobs:
     name: Go Build
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout 💻
+        uses: actions/checkout@v4.1.7
+
       - name: Go Setup ⚙️
         uses: ./.github/workflows/go.yml
 
@@ -42,13 +45,16 @@ jobs:
     needs:
       - build
     steps:
+      - name: Checkout 💻
+        uses: actions/checkout@v4.1.7
+
       - name: Go Setup ⚙️
         uses: ./.github/workflows/go.yml
         with:
           go-version: ${{ matrix.go-version }}
 
       - name: Go Unit Test 🧪
-        run: go test ./... -v -coverprofile=unit-test.lcov -covermode count -json > unit-test.log
+        run: go test ./... -v -coverprofile=unit-test.lcov -json > unit-test.log
 
       - name: Upload Unit Test Artifacts ⏫
         uses: actions/upload-artifact@v4.3.4
@@ -73,6 +79,9 @@ jobs:
           - '1.7.*'
           - '1.8.*'
     steps:
+      - name: Checkout 💻
+        uses: actions/checkout@v4.1.7
+
       - name: Go Setup ⚙️
         uses: ./.github/workflows/go.yml
 
@@ -114,6 +123,9 @@ jobs:
       - test-unit
       - test-acc
     steps:
+      - name: Checkout 💻
+        uses: actions/checkout@v4.1.7
+
       - name: Go Setup ⚙️
         uses: ./.github/workflows/go.yml
 
