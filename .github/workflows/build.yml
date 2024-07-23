@@ -59,5 +59,3 @@ jobs:
           retention-days: 7
           overwrite: true
           compression-level: 1 # best speed
-
-
