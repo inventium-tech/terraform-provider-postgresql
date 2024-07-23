@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   codeql:
-    name: Analyze (${{ matrix.language }}) 📊
+    name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     timeout-minutes: 360
     permissions:
@@ -41,7 +41,7 @@ jobs:
       - name: Initialize CodeQL ⚙️
         uses: github/codeql-action/init@v3
         with:
-          languages: go
+          languages: ${{ matrix.language }}
 
       - name: CodeQL Analysis ❇️
         uses: github/codeql-action/analyze@v3

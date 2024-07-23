@@ -1,0 +1,26 @@
+name: Go Setup
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        description: 'Go version to use'
+        default: '1.21'
+        required: false
+        type: string
+
+jobs:
+  go-setup:
+    name: Go Setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 💻
+        uses: actions/checkout@v4.1.7
+
+      - name: Setup Go environment ⚙️
+        uses: actions/setup-go@v5.0.2
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Go Pkg Install 📦
+        run: go mod download

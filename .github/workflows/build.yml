@@ -1,5 +1,5 @@
 name: build
-run-name: '🛠️ Build - ${{ github.ref_name }}'
+run-name: '🛠️ Build - [${{ github.ref_name }}' ]
 
 on:
   push:
@@ -10,12 +10,6 @@ on:
     paths-ignore:
       - 'assets/**'
       - 'docs/**'
-#  workflow_run:
-#    workflows:
-#      - 'mega-linter'
-#      - 'codeql'
-#    types:
-#      - completed
 
 permissions:
   contents: read
@@ -26,44 +20,119 @@ concurrency:
 
 jobs:
   build:
+    name: Go Build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 💻
-        uses: actions/checkout@v4.1.7
+      - name: Go Setup ⚙️
+        uses: ./.github/workflows/go.yml
 
-      - name: Setup Go environment ⚙️
-        uses: actions/setup-go@v5.0.2
-        with:
-          go-version-file: 'go.mod'
-          cache: true
-      - run: go mod download
       - name: Go Build 🛠️
         run: go build -v ./...
 
-  test:
+  test-unit:
+    name: Go Unit Test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version:
+          - '1.20'
+          - '1.21'
+          - '1.22'
+    needs:
+      - build
+    steps:
+      - name: Go Setup ⚙️
+        uses: ./.github/workflows/go.yml
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Go Unit Test 🧪
+        run: go test ./... -v -coverprofile=unit-test.lcov -covermode count -json > unit-test.log
+
+      - name: Upload Unit Test Artifacts ⏫
+        uses: actions/upload-artifact@v4.3.4
+        if: success()
+        with:
+          name: unit-test-reports-${{ github.sha }}
+          path: |
+            unit-test.lcov
+            unit-test.log
+          retention-days: 7
+          overwrite: true
+          compression-level: 1 # best speed
+
+  test-acc:
+    name: Go Acceptance Test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tf-version:
+          - '1.6.*'
+          - '1.7.*'
+          - '1.8.*'
+    steps:
+      - name: Go Setup ⚙️
+        uses: ./.github/workflows/go.yml
+
+      - name: Terraform Setup 🏗️
+        uses: hashicorp/setup-terraform@v1.6.0
+        with:
+          terraform_version: ${{ matrix.tf-version }}
+          terraform_wrapper: false
+
+      - name: Go Acceptance Test 🧪
+        run: go test ./internal/provider -v -coverprofile=acc-test.lcov -json > acc-test.log
+        env:
+          TF_ACC: '1'
+
+      - name: Upload Acceptance Test Artifacts ⏫
+        uses: actions/upload-artifact@v4.3.4
+        if: success()
+        with:
+          name: acc-test-reports-${{ github.sha }}
+          path: |
+            acc-test.lcov
+            acc-test.log
+          retention-days: 7
+          overwrite: true
+          compression-level: 1 # best speed
+
+  generate:
+    name: Go Generate
+    runs-on: ubuntu-latest
+    needs:
+      - build
+      - test
+    steps:
+      - name: Go Setup ⚙️
+        uses: ./.github/workflows/go.yml
+
+      - name: Go Generate 📜
+        run: go generate ./...
+
+  sonarcloud:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 💻
         uses: actions/checkout@v4.1.7
-      - name: Setup Go environment ⚙️
-        uses: actions/setup-go@v5.0.2
         with:
-          go-version-file: 'go.mod'
-          cache: true
-      - run: go mod download
-      - run: go test -v ./... -json > test-acc-report.json
-        env:
-          TF_ACC: '1'
-      - run: go test ./... -v -coverprofile=test-acc-coverage.out
-        env:
-          TF_ACC: '1'
-      - name: Upload Artifacts 📦
-        uses: actions/upload-artifact@v4.3.4
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
+
+      - name: Download Unit Test Artifact ⏬
+        uses: actions/download-artifact@v4.1.8
         with:
-          name: test-acc-reports-${{ github.sha }}
-          path: |
-            test-acc-report.json
-            test-acc-coverage.out
-          retention-days: 7
-          overwrite: true
-          compression-level: 1 # best speed
+          name: unit-test-reports-${{ github.sha }}
+
+      - name: Download Acceptance Test Artifact ⏬
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: acc-test-reports-${{ github.sha }}
+
+      - name: SonarCloud Scan 🔍
+        uses: sonarsource/sonarcloud-github-action@v2.3.0 # See the latest version at https://github.com/marketplace/actions/sonarcloud-scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
