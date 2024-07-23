@@ -56,12 +56,10 @@ jobs:
       - name: Setup Go environment ⚙️
         uses: actions/setup-go@v5.0.2
         with:
-          go-version: ${{ inputs.go-version }}
+          go-version: ${{ matrx.go-version }}
 
       - name: Go Pkg Install 📦
         run: go mod download
-        with:
-          go-version: ${{ matrix.go-version }}
 
       - name: Go Unit Test 🧪
         run: go test ./... -v -coverprofile=unit-test.lcov -json > unit-test.log
@@ -94,8 +92,6 @@ jobs:
 
       - name: Setup Go environment ⚙️
         uses: actions/setup-go@v5.0.2
-        with:
-          go-version: ${{ inputs.go-version }}
 
       - name: Go Pkg Install 📦
         run: go mod download
@@ -143,8 +139,6 @@ jobs:
 
       - name: Setup Go environment ⚙️
         uses: actions/setup-go@v5.0.2
-        with:
-          go-version: ${{ inputs.go-version }}
 
       - name: Go Pkg Install 📦
         run: go mod download
