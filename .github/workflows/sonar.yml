@@ -1,5 +1,5 @@
 name: sonar-scan
-run-name: "💡 Sonar Scan ( ${{ github.ref_name }} )"
+run-name: '💡 Sonar Scan ${{ github.ref_name }}'
 
 on:
   push:
