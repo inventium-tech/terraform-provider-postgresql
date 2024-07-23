@@ -87,6 +87,13 @@ jobs:
         env:
           TF_ACC: '1'
 
+      - name: Upload coverage reports to Codecov ☂️
+        uses: codecov/codecov-action@v4.5.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+          files: unit-test.lcov,acc-test.lcov
+
       - name: Upload Acceptance Test Artifacts ⏫
         uses: actions/upload-artifact@v4.3.4
         if: success()
