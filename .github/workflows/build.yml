@@ -44,7 +44,6 @@ jobs:
       fail-fast: false
       matrix:
         go-version:
-          - '1.20'
           - '1.21'
           - '1.22'
     needs:
@@ -147,6 +146,7 @@ jobs:
         run: go generate ./...
 
   sonarcloud:
+    name: SonarCloud Scan
     runs-on: ubuntu-latest
     needs:
       - build
