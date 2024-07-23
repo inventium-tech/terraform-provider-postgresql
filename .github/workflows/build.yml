@@ -1,11 +1,11 @@
 name: build
-run-name: "🛠️ Build - ${{ github.ref_name }}"
+run-name: '🛠️ Build - ${{ github.ref_name }}'
 
 on:
   workflow_run:
     workflows:
-      - "mega-linter"
-      - "codeql"
+      - 'mega-linter'
+      - 'codeql'
     types:
       - completed
 
@@ -45,10 +45,10 @@ jobs:
       - run: go mod download
       - run: go test -v ./... -json > test-acc-report.json
         env:
-          TF_ACC: "1"
+          TF_ACC: '1'
       - run: go test ./... -v -coverprofile=test-acc-coverage.out
         env:
-          TF_ACC: "1"
+          TF_ACC: '1'
       - name: Upload Artifacts 📦
         uses: actions/upload-artifact@v4.3.4
         with:
