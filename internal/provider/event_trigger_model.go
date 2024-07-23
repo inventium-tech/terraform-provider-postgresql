@@ -85,7 +85,9 @@ func (m *eventTriggerResModel) SetLastUpdated() {
 func (m *eventTriggerResModel) GetTagsSlice() []string {
 	tags := make([]string, 0)
 	for _, element := range m.Tags.Elements() {
-		tags = append(tags, element.(types.String).ValueString())
+		if v, ok := element.(types.String); ok {
+			tags = append(tags, v.ValueString())
+		}
 	}
 	return tags
 }

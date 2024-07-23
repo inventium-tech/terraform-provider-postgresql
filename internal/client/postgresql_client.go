@@ -205,10 +205,8 @@ func (cli *pgClientModel) DeferredRollback(txn *sql.Tx) {
 		if slices.Contains([]string{"DEBUG", "TRACE"}, tfLog) {
 			fmt.Println("[DEBUG] transaction has already been committed or rolled back")
 		}
-		break
 	case err != nil:
 		fmt.Printf("[ERROR]: error rolling back transaction.\nError: %v\n", err)
-		break
 	}
 
 }
@@ -220,7 +218,6 @@ func (cli *pgClientModel) getTargetConnConfig(targetDB []string) (PGClientConfig
 		return targetCfg, nil
 	case 1:
 		targetCfg.Database = targetDB[0]
-		break
 	default:
 		return targetCfg, fmt.Errorf("only one connection configuration is allowed")
 	}

@@ -26,7 +26,7 @@ const (
 	testPGDefaultPassword = "tester"
 )
 
-func loadPostgresTestContainer(t *testing.T, config postgresTestContainerConfig) (*postgres.PostgresContainer, client.PGClient) {
+func loadPostgresTestContainer(t *testing.T, config postgresTestContainerConfig) client.PGClient {
 	ctx := context.Background()
 
 	if config.image == "" {
@@ -78,10 +78,10 @@ func loadPostgresTestContainer(t *testing.T, config postgresTestContainerConfig)
 	assert.NoError(t, os.Setenv("POSTGRES_SCHEME", "postgres"))
 	assert.NoError(t, os.Setenv("POSTGRES_SSLMODE", "disable"))
 
-	return pgContainer, pgClient
+	return pgClient
 }
 
-func createTestFunction(t *testing.T, c client.PGClient, dbName, fName, fBody, fReturns, fLang string) func() {
+func createTestFunction(t *testing.T, c client.PGClient, dbName, fName, fBody, fReturns, fLang string) {
 	ctx := context.TODO()
 
 	// CREATE RESOURCE
@@ -100,28 +100,9 @@ func createTestFunction(t *testing.T, c client.PGClient, dbName, fName, fBody, f
 	if err = txn.Commit(); err != nil {
 		t.Fatalf("could not commit transaction for db %s: %v", dbName, err)
 	}
-
-	// DESTROY RESOURCE
-	return func() {
-		txn, err = c.CreateTransaction(ctx, dbName)
-		if err != nil {
-			t.Fatalf("could not create transaction for db %s: %v", dbName, err)
-		}
-		defer c.DeferredRollback(txn)
-
-		dropFunctionQuery := c.DropFunctionQuery(fName)
-
-		if _, err = txn.ExecContext(ctx, dropFunctionQuery); err != nil {
-			t.Fatalf("could not drop test function: '%s' in db %s: %v", fName, dbName, err)
-		}
-
-		if err = txn.Commit(); err != nil {
-			t.Fatalf("could not commit transaction for db %s: %v", dbName, err)
-		}
-	}
 }
 
-func createTestEventTrigger(t *testing.T, c client.PGClient, m eventTriggerResModel) func() {
+func createTestEventTrigger(t *testing.T, c client.PGClient, m eventTriggerResModel) {
 	ctx := context.TODO()
 	diags := diag.Diagnostics{}
 
@@ -129,12 +110,4 @@ func createTestEventTrigger(t *testing.T, c client.PGClient, m eventTriggerResMo
 	if diags.HasError() {
 		t.Fatal("could not create test event trigger")
 	}
-
-	return func() {
-		diags.Append(m.Delete(ctx, c)...)
-		if diags.HasError() {
-			t.Fatal("could not delete test event trigger")
-		}
-	}
-
 }

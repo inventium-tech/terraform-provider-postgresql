@@ -39,7 +39,7 @@ type PostgresqlProvider struct {
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
 	version string
-	client  client.PGClient
+	client  client.PGClient //nolint:unused
 }
 
 // PostgresqlProviderConfig describes the provider data model.
@@ -186,7 +186,6 @@ func (p *PostgresqlProvider) Configure(ctx context.Context, req provider.Configu
 	pgClient := client.NewPGClient(config)
 	res.DataSourceData = pgClient
 	res.ResourceData = pgClient
-	ctx = context.WithValue(ctx, "pgclient", pgClient)
 }
 
 func (p *PostgresqlProvider) Resources(ctx context.Context) []func() resource.Resource {
@@ -296,7 +295,7 @@ func (ppm *PostgresqlProviderConfig) validateFields(valType providerAttrValidati
 // respective attribute is empty or not set.
 //
 // Returns:
-// - None
+// - None.
 func (ppm *PostgresqlProviderConfig) loadConfig() diag.Diagnostics {
 	diags := diag.Diagnostics{}
 
@@ -367,5 +366,5 @@ func (ppm *PostgresqlProviderConfig) transposeToPGClientConfig() (client.PGClien
 		diags.AddError("Failed to use Provider config to Create a PGClientConfig", err.Error())
 	}
 
-	return config, nil
+	return config, diags
 }

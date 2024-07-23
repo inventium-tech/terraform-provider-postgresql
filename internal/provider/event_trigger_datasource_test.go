@@ -26,7 +26,7 @@ func TestAccEventTriggerDataSource(t *testing.T) {
 			END`
 	)
 
-	_, pgClient := loadPostgresTestContainer(t, postgresTestContainerConfig{
+	pgClient := loadPostgresTestContainer(t, postgresTestContainerConfig{
 		image:    "postgres:16-alpine",
 		username: mockEvtTrigOwner,
 	})

@@ -28,7 +28,6 @@ func (cli *pgClientModel) CreateEventTriggerQuery(name, event, execFn string, ta
 	whenClause := ""
 	if len(tags) > 0 {
 		whenClause = fmt.Sprintf("WHEN TAG IN (%s)", pgQuoteListOfLiterals(tags))
-		tags = append(tags, "ALL")
 	}
 
 	query := `-- Create Event Trigger

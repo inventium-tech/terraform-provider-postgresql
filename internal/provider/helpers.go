@@ -6,31 +6,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"strings"
 	"terraform-provider-postgresql/internal/client"
 )
-
-func parseModelFromReq[M interface{}, R tfsdk.Config | tfsdk.Plan](ctx context.Context, source R, model *M) diag.Diagnostics {
-	diags := diag.Diagnostics{}
-	switch any(source).(type) {
-	case tfsdk.Config:
-		diags.Append(any(source).(tfsdk.Config).Get(ctx, model)...)
-		break
-	case tfsdk.Plan:
-		diags.Append(any(source).(tfsdk.Plan).Get(ctx, model)...)
-		break
-	default:
-		diags.AddError(
-			"Invalid source type",
-			fmt.Sprintf("Type for the 'source' parameter must be either 'tfsdk.Config' or 'tfsdk.Plan', received '%T'", source),
-		)
-		break
-	}
-
-	return diags
-}
 
 func standardDataSourceConfigure[R datasource.ConfigureRequest | resource.ConfigureRequest](ctx context.Context, req R) (client.PGClient, diag.Diagnostics) {
 	diags := diag.Diagnostics{}
@@ -38,11 +17,13 @@ func standardDataSourceConfigure[R datasource.ConfigureRequest | resource.Config
 
 	switch any(req).(type) {
 	case datasource.ConfigureRequest:
-		providerData = any(req).(datasource.ConfigureRequest).ProviderData
-		break
+		if reqCast, ok := any(req).(datasource.ConfigureRequest); ok {
+			providerData = reqCast.ProviderData
+		}
 	case resource.ConfigureRequest:
-		providerData = any(req).(resource.ConfigureRequest).ProviderData
-		break
+		if reqCast, ok := any(req).(resource.ConfigureRequest); ok {
+			providerData = reqCast.ProviderData
+		}
 	default:
 		diags.AddError(
 			"Unexpected Type for the req parameter",

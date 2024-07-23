@@ -37,6 +37,7 @@ ldflags
 makezero
 markdownlint
 megalinter
+nolint
 nilerr
 oxsecurity
 pgclient
