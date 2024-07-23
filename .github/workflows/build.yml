@@ -26,8 +26,13 @@ jobs:
       - name: Checkout 💻
         uses: actions/checkout@v4.1.7
 
-      - name: Go Setup ⚙️
-        uses: ./.github/workflows/go.yml
+      - name: Setup Go environment ⚙️
+        uses: actions/setup-go@v5.0.2
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Go Pkg Install 📦
+        run: go mod download
 
       - name: Go Build 🛠️
         run: go build -v ./...
@@ -48,8 +53,13 @@ jobs:
       - name: Checkout 💻
         uses: actions/checkout@v4.1.7
 
-      - name: Go Setup ⚙️
-        uses: ./.github/workflows/go.yml
+      - name: Setup Go environment ⚙️
+        uses: actions/setup-go@v5.0.2
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Go Pkg Install 📦
+        run: go mod download
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -82,8 +92,13 @@ jobs:
       - name: Checkout 💻
         uses: actions/checkout@v4.1.7
 
-      - name: Go Setup ⚙️
-        uses: ./.github/workflows/go.yml
+      - name: Setup Go environment ⚙️
+        uses: actions/setup-go@v5.0.2
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Go Pkg Install 📦
+        run: go mod download
 
       - name: Terraform Setup 🏗️
         uses: hashicorp/setup-terraform@v3.1.1
@@ -126,8 +141,13 @@ jobs:
       - name: Checkout 💻
         uses: actions/checkout@v4.1.7
 
-      - name: Go Setup ⚙️
-        uses: ./.github/workflows/go.yml
+      - name: Setup Go environment ⚙️
+        uses: actions/setup-go@v5.0.2
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Go Pkg Install 📦
+        run: go mod download
 
       - name: Go Generate 📜
         run: go generate ./...
