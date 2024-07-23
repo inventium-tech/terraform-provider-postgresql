@@ -56,6 +56,8 @@ jobs:
           #     github.ref == 'refs/heads/main'
           #   }}
           VALIDATE_ALL_CODEBASE: true
+          DEFAULT_WORKSPACE: ${{ github.workspace }}
+          REPORT_OUTPUT_FOLDER: ${{ github.workspace }}/.ml-reports
 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -66,5 +68,5 @@ jobs:
         with:
           name: MegaLinter reports
           path: |
-            .ml-reports
+            .ml-reports/
             mega-linter.log
