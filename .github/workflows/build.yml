@@ -111,7 +111,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build
-      - test
+      - test-unit
+      - test-acc
     steps:
       - name: Go Setup ⚙️
         uses: ./.github/workflows/go.yml
@@ -121,6 +122,10 @@ jobs:
 
   sonarcloud:
     runs-on: ubuntu-latest
+    needs:
+      - build
+      - test-unit
+      - test-acc
     steps:
       - name: Checkout 💻
         uses: actions/checkout@v4.1.7
