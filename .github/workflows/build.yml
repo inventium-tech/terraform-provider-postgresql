@@ -2,12 +2,20 @@ name: build
 run-name: '🛠️ Build - ${{ github.ref_name }}'
 
 on:
-  workflow_run:
-    workflows:
-      - 'mega-linter'
-      - 'codeql'
-    types:
-      - completed
+  push:
+    branches:
+      - $default-branch
+      - $protected-branch
+  pull_request:
+    paths-ignore:
+      - 'assets/**'
+      - 'docs/**'
+#  workflow_run:
+#    workflows:
+#      - 'mega-linter'
+#      - 'codeql'
+#    types:
+#      - completed
 
 permissions:
   contents: read
