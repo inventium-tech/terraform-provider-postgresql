@@ -1,5 +1,5 @@
 name: mega-linter
-run-name: "🔍 MegaLinter ( ${{ github.ref_name }}"
+run-name: "🔍 MegaLinter - ${{ github.ref_name }}"
 
 # Trigger mega-linter at every push. Action will also be visible from
 # Pull Requests to main
@@ -12,8 +12,8 @@ on:
       - $protected-branch
   pull_request:
     branches:
-      - main
-      - dev
+      - $default-branch
+      - $protected-branch
 
 permissions:
   contents: read
