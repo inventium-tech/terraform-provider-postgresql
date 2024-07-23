@@ -60,7 +60,7 @@ jobs:
       - name: Upload Artifacts 📦
         uses: actions/upload-artifact@v4.3.4
         with:
-          name: test-acc-reports-${{ github.ref_name }}
+          name: test-acc-reports-${{ github.sha }}
           path: |
             test-acc-report.json
             test-acc-coverage.out
