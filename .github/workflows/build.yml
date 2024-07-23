@@ -1,5 +1,5 @@
 name: build
-run-name: '🛠️ Build - [${{ github.ref_name }}' ]
+run-name: '🛠️ Build - ${{ github.ref_name }}'
 
 on:
   push:
@@ -142,4 +142,3 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@v2.3.0 # See the latest version at https://github.com/marketplace/actions/sonarcloud-scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
