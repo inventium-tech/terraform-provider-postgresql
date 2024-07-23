@@ -56,7 +56,7 @@ jobs:
       - name: Setup Go environment ⚙️
         uses: actions/setup-go@v5.0.2
         with:
-          go-version: ${{ matrx.go-version }}
+          go-version: ${{ matrix.go-version }}
 
       - name: Go Pkg Install 📦
         run: go mod download
