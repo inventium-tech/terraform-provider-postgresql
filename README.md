@@ -20,7 +20,7 @@
 
 <!-- TOC -->
 * [🐘 Terraform Provider for PostgreSQL](#-terraform-provider-for-postgresql)
-  * [⚠️ READ BEFORE USE:](#-read-before-use)
+  * [❗ READ BEFORE USE](#-read-before-use)
   * [🏁 Roadmap](#-roadmap)
 <!-- TOC -->
 
@@ -29,10 +29,10 @@
 Here is a new Terraform provider for PostgreSQL. This provider is designed to manage PostgreSQL resources using
 Terraform.
 
-## ⚠️ READ BEFORE USE:
+## ❗ READ BEFORE USE
 
-- This provider is still in development and has a limited support for PostgreSQL resources.
-- Check the [🏁 Roadmap](#-roadmap) for the list of supported resources.
+* This provider is still in development and has a limited support for PostgreSQL resources.
+* Check the [🏁 Roadmap](#-roadmap) for the list of supported resources.
 
 ## 🏁 Roadmap
 
@@ -40,9 +40,9 @@ Here you can find a status of the resources that are supported by the provider.
 
 _status legend:_
 
-- ✅ Supported
-- 🚧 In Development
-- ❌ Not Supported
+* ✅ Supported
+* 🚧 In Development
+* ❌ Not Supported
 
 | Name          | Resource | Data Source |
 |---------------|:--------:|:-----------:|
@@ -50,4 +50,7 @@ _status legend:_
 | Database      |    🚧    |      ✅      |
 |               |          |             |
 
-<a href="https://www.buymeacoffee.com/refucktor" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+<a href="https://www.buymeacoffee.com/refucktor" target="_blank">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee"
+    style="height: 60px !important;width: 217px !important;">
+</a>

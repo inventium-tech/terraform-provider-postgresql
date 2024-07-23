@@ -7,7 +7,7 @@ import (
 
 type PGRoleQueries interface {
 	CheckRoleIsSuperuserQuery(role string) string
-	CheckCurrenRoleIsSuperuserQuery() string
+	CheckCurrentRoleIsSuperuserQuery() string
 }
 
 var _ PGRoleQueries = &pgClientModel{}
@@ -21,7 +21,7 @@ func (cli *pgClientModel) CheckRoleIsSuperuserQuery(role string) string {
 	return fmt.Sprintf(query, pq.QuoteLiteral(role))
 }
 
-func (cli *pgClientModel) CheckCurrenRoleIsSuperuserQuery() string {
+func (cli *pgClientModel) CheckCurrentRoleIsSuperuserQuery() string {
 	query := `-- Check if the current role is a superuser
 		SELECT r.rolsuper
 		FROM pg_catalog.pg_roles r

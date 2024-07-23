@@ -18,6 +18,9 @@ on:
       - 'docs/**'
       - 'examples/**'
 
+permissions:
+  contents: read
+
 jobs:
   codeql:
     name: Analyze (${{ matrix.language }}) 📊
@@ -43,20 +46,4 @@ jobs:
       - name: CodeQL Analysis ❇️
         uses: github/codeql-action/analyze@v3
         with:
-          category: "/language:javascript"
-
-  sonarcloud:
-    name: SonarCloud
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout 💻
-        uses: actions/checkout@v4.1.7
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-
-      - name: SonarCloud Scan ☁️
-        uses: SonarSource/sonarcloud-github-action@v2.3.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
+          category: "/language:${{matrix.language}}"

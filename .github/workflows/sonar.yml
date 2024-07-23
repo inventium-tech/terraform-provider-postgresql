@@ -1,0 +1,33 @@
+name: sonar-scan
+run-name: "💡 Sonar Scan ( ${{ github.ref_name }} )"
+
+on:
+  # Trigger analysis when pushing in master or pull requests, and when creating
+  # a pull request.
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: read
+
+jobs:
+  sonarcloud:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 💻
+        uses: actions/checkout@v4.1.7
+        with:
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
+
+      - name: SonarCloud Scan 💡
+        uses: sonarsource/sonarcloud-github-action@v2.3.0 # See the latest version at https://github.com/marketplace/actions/sonarcloud-scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

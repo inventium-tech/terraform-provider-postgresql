@@ -36,3 +36,6 @@ website/vendor
 # IDEs
 .idea/
 .vscode/
+
+# MegaLinter
+.ml-reports/
