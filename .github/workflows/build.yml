@@ -4,8 +4,8 @@ run-name: "🛠️ Build - ${{ github.ref_name }}"
 on:
   workflow_run:
     workflows:
-      - lint
       - codeql
+      - mega-linter
     types:
       - completed
 

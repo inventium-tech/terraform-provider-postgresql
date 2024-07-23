@@ -1,5 +1,5 @@
-name: code-scan
-run-name: "❇️ Code Scan - ${{ github.ref_name }}"
+name: codeql
+run-name: "❇️ CodeQL Scan - ${{ github.ref_name }}"
 
 on:
   push:
