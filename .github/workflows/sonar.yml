@@ -4,15 +4,11 @@ run-name: "💡 Sonar Scan ( ${{ github.ref_name }} )"
 on:
   # Trigger analysis when pushing in master or pull requests, and when creating
   # a pull request.
-  push:
-    branches:
-      - main
-      - dev
-  pull_request:
+  workflow_run:
+    workflows:
+      - build
     types:
-      - opened
-      - reopened
-      - synchronize
+      - completed
 
 permissions:
   contents: read
@@ -26,6 +22,11 @@ jobs:
         with:
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
+
+      - name: Download Artifact 📦
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: test-acc-reports-${{ github.ref_name }}
 
       - name: SonarCloud Scan 💡
         uses: sonarsource/sonarcloud-github-action@v2.3.0 # See the latest version at https://github.com/marketplace/actions/sonarcloud-scan

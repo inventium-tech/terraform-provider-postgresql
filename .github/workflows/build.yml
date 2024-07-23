@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,14 +35,29 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout 💻
         uses: actions/checkout@v4.1.7
-      - name: Setup Go environment
+      - name: Setup Go environment ⚙️
         uses: actions/setup-go@v5.0.2
         with:
           go-version-file: 'go.mod'
           cache: true
       - run: go mod download
-      - run: go test -v ./...
+      - run: go test -v ./... -json > test-acc-report.json
         env:
           TF_ACC: "1"
+      - run: go test ./... -v -coverprofile=test-acc-coverage.out
+        env:
+          TF_ACC: "1"
+      - name: Upload Artifacts 📦
+        uses: actions/upload-artifact@v4.3.4
+        with:
+          name: test-acc-reports-${{ github.ref_name }}
+          path: |
+            test-acc-report.json
+            test-acc-coverage.out
+          retention-days: 7
+          overwrite: true
+          compression-level: 1 # best speed
+
+

@@ -1,6 +1,7 @@
 awspostgres
 booldefault
 boolplanmodifier
+coverprofile
 ctype
 customizer
 datallowconn
