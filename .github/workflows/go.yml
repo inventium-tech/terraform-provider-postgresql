@@ -1,47 +1,26 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
-name: Go
+name: Go Setup
 
 on:
-  push:
-    paths-ignore:
-      - 'README.md'
-      - 'assets/**'
-      - 'docs/**'
-      - 'examples/**'
-  pull_request:
-    paths-ignore:
-      - 'README.md'
-      - 'assets/**'
-      - 'docs/**'
-      - 'examples/**'
+  workflow_call:
+    inputs:
+      go-version:
+        description: 'Go version to use'
+        default: '1.21'
+        required: false
+        type: string
+
+permissions:
+  contents: read
 
 jobs:
-
-  build:
+  go-setup:
+    name: Go Setup
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.7
-      - name: Setup Go environment
+      - name: Setup Go environment ⚙️
         uses: actions/setup-go@v5.0.2
         with:
-          go-version-file: 'go.mod'
-          cache: true
-      - run: go mod download
-      - name: Go Build
-        run: go build -v .
+          go-version: ${{ inputs.go-version }}
 
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.7
-      - name: Setup Go environment
-        uses: actions/setup-go@v5.0.2
-        with:
-          go-version-file: 'go.mod'
-          cache: true
-      - run: go mod download
-      - run: go build test .
+      - name: Go Pkg Install 📦
+        run: go mod download

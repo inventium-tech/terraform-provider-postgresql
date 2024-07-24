@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-latest}
+    command:
+      - "postgres"
+      - "-c"
+      - "log_statement=all"
+    container_name: pg-tf-provider
+    hostname: pg-tf-provider
+    ports:
+      - '25432:5432'
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
