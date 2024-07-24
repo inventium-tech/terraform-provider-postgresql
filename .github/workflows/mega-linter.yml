@@ -8,8 +8,8 @@ on:
   # (not recommended if you don't pay for GH Actions)
   push:
     branches:
-      - $default-branch
-      - $protected-branch
+      - dev
+      - main
   pull_request:
     paths-ignore:
       - 'assets/**'
