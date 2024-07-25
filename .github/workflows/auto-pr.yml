@@ -31,13 +31,15 @@ jobs:
         uses: actions/github-script@v7.0.1
         with:
           script: |
+            const refName = '${{ github.ref_name}}';
             console.log('PAYLOAD:', context.payload);
             let [accOwner, repoName] = [context.repo.owner, context.repo.repo];
             const prListOpts = await github.rest.pulls.list({
               'owner': accOwner,
               'repo': repoName,
-              'state': 'closed',
-              'base': 'dev'
+              'state': 'open',
+              'base': 'dev',
+              'head': `${context.payload.organization.login}:${refName}`,
             })
             const list = prListOpts.data.map((x) => ({'title': x.title, 'head': x.head}));
             
@@ -50,3 +52,6 @@ jobs:
                 commits.shift(); // remove the latest commit because it's already grep
                 body = commits.map((x) => '- ' + x.message.split('\n')[0]);      
             }
+            
+            const list = await github.paginate(prListOpts);
+            console.log('PR_LIST:', list);
