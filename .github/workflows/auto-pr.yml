@@ -17,6 +17,7 @@ on:
       - perf/**
 
 permissions:
+  pull-requests: write
   contents: read
 
 jobs:
