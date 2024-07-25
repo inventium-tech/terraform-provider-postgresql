@@ -39,11 +39,5 @@ jobs:
                 body = commits.map((x) => '- ' + x.message.split('\n')[0]);      
             }
             
-            console.log("PR PAYLOAD:', {
-              "owner": context.repo.owner      // The account owner of the repository
-              "repo": context.repo.repo        // The name of the repository without the .git extension
-              "base": 'dev'                    // The name of the branch you want the changes pulled into
-              "title": title                   // The title of the pull request
-              "body": body.join('\n')          // The body of the pull request
-              "maintainer_can_modify": true    // Allow maintainers to modify the PR
-            })
+            console.log('PR TITLE:', title);
+            console.log('PR BODY:', body);
