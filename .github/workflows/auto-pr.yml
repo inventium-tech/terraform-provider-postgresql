@@ -33,6 +33,6 @@ jobs:
           script: |
             const msg = context.payload.head_commit.message;        // get latest commit on the branch
             let [title, body] = msg.split('\n').filter((x) => !!x); // split the commit message into title and body
-            console.log('MESSAGE:' msg)
-            console.log('TITLE:' title)
-            console.log('BODY:' body)
+            console.log('MESSAGE:', msg)
+            console.log('TITLE:', title)
+            console.log('BODY:', body)
