@@ -35,7 +35,8 @@ jobs:
             const prListOpts = await github.rest.pulls.list({
               'owner': accOwner,
               'repo': repoName,
-              'state': 'all',
+              'state': 'closed',
+              'base': 'dev'
             })
             
             console.log('PR_LIST:', prListOpts );
