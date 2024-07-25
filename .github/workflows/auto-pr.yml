@@ -32,14 +32,13 @@ jobs:
         with:
           script: |
             let [accOwner, repoName] = [context.repo.owner, context.repo.repo];
-            const prListOpts = github.rest.pull.list({
+            const prListOpts = github.rest.pulls.list({
               'owner': accOwner,
               'repo': repoName,
               'state': 'all',
             })
             
-            const list = await github.paginate(prListOpts);
-            console.log('PR_LIST:', list);
+            console.log('PR_LIST:', prListOpts );
             
             const msg = context.payload.head_commit.message;        // get latest commit on the branch
             let [title, ...body] = msg.split('\n').filter((x) => !!x); // split the commit message into title and body
