@@ -34,9 +34,7 @@ jobs:
             let [accOwner, repoName] = [context.repo.owner, context.repo.repo];
             const list = github.rest.pull.list({
               'owner': accOwner,
-              'repo': repoName,
-              'state': 'closed',
-              'base': 'dev',
+              'repo': repoName
             })
             
             console.log('PR_LIST:', list);
