@@ -3,7 +3,8 @@
 # See all available variables at https://megalinter.io/latest/config-file/ and in linters documentation
 
 # all, none, or list of linter keys
-APPLY_FIXES: none # all, none, or list of linter keys
+APPLY_FIXES: # all, none, or list of linter keys
+  - JSON_PRETTIER
 ENABLE_LINTERS: # If you use ENABLE_LINTERS variable, all other linters will be disabled by default
   - COPYPASTE_JSCPD             # https://megalinter.io/latest/descriptors/copypaste_jscpd/
   - GO_GOLANGCI_LINT            # https://megalinter.io/latest/descriptors/go_golangci_lint/

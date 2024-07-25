@@ -1,6 +1,7 @@
 awspostgres
 booldefault
 boolplanmodifier
+conventionalcommits
 coverprofile
 ctype
 customizer
@@ -11,6 +12,7 @@ datconnlimit
 datctype
 datdba
 datname
+ddea
 dessant
 durationcheck
 errcheck
@@ -38,8 +40,8 @@ ldflags
 makezero
 markdownlint
 megalinter
-nolint
 nilerr
+nolint
 oxsecurity
 pgclient
 planmodifier
@@ -49,6 +51,7 @@ proname
 pronamespace
 providerserver
 refucktor
+releaserc
 rolname
 rolsuper
 setplanmodifier
