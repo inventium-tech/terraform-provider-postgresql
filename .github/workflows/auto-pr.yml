@@ -32,12 +32,13 @@ jobs:
         with:
           script: |
             let [accOwner, repoName] = [context.repo.owner, context.repo.repo];
-            const list = await github.rest.pull.list({
+            const prListOpts = github.rest.pull.list({
               'owner': accOwner,
               'repo': repoName,
               'state': 'all',
             })
             
+            const list = await github.paginate(prListOpts);
             console.log('PR_LIST:', list);
             
             const msg = context.payload.head_commit.message;        // get latest commit on the branch
