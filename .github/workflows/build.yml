@@ -65,7 +65,7 @@ jobs:
 
       - name: Upload Unit Test Artifacts ⏫
         uses: actions/upload-artifact@v4.3.4
-        if: success()
+        if: ${{ success() }}
         with:
           name: unit-test-reports-${{ github.sha }}
           path: |
@@ -115,7 +115,7 @@ jobs:
 
       - name: Upload Acceptance Test Artifacts ⏫
         uses: actions/upload-artifact@v4.3.4
-        if: success()
+        if: ${{ success() }}
         with:
           name: acc-test-reports-${{ github.sha }}
           path: |

@@ -18,7 +18,8 @@ MD026:
   punctuation: ".,;:!。，；：！"
 
 # MD029/ol-prefix - Ordered list item prefix
-MD029: false
+MD029:
+  style: ordered
 
 # MD033/no-inline-html - Inline HTML
 MD033: false
