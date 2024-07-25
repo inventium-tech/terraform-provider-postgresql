@@ -39,7 +39,7 @@ jobs:
             let [title, body] = msg.split('\n').filter((x) => !!x);     // split the commit message into title and body
             let [owner, repo] = '${{ github.repository }}'.split('/');  // get the owner and repo name
             
-            github.rest.pulls.create({
+            console.log("PAYLOAD:", {
               owner: owner                  // The account owner of the repository
               repo: repo                    // The name of the repository without the .git extension
               head: '${{ github.ref_name}}' // The name of the branch where your changes are implemented
