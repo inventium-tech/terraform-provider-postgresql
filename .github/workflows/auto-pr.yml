@@ -31,6 +31,16 @@ jobs:
         uses: actions/github-script@v7.0.1
         with:
           script: |
+            let [accOwner, repoName] = [context.repo.owner, context.repo.repo];
+            const list = github.rest.pull.list({
+              'owner': accOwner,
+              'repo': repoName,
+              'state': 'closed',
+              'base': 'dev',
+            })
+            
+            console.log('PR_LIST:', list);
+            
             const msg = context.payload.head_commit.message;        // get latest commit on the branch
             let [title, ...body] = msg.split('\n').filter((x) => !!x); // split the commit message into title and body
             if (!body.length) {
@@ -38,14 +48,3 @@ jobs:
                 commits.shift(); // remove the latest commit because it's already grep
                 body = commits.map((x) => '- ' + x.message.split('\n')[0]);      
             }
-            
-            console.log('PR TITLE:', title);
-            console.log('PR BODY:', body);
-            console.log('PR PAYLOAD:', {
-              'owner': context.repo.owner,      // The account owner of the repository
-              'repo': context.repo.repo,        // The name of the repository without the .git extension
-              'base': 'dev',                    // The name of the branch you want the changes pulled into
-              'title': title,                   // The title of the pull request
-              'body': body.join('\n'),          // The body of the pull request
-              'maintainer_can_modify': true    // Allow maintainers to modify the PR
-            })
