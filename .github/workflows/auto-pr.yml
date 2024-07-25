@@ -52,6 +52,3 @@ jobs:
                 commits.shift(); // remove the latest commit because it's already grep
                 body = commits.map((x) => '- ' + x.message.split('\n')[0]);      
             }
-            
-            const list = await github.paginate(prListOpts);
-            console.log('PR_LIST:', list);
