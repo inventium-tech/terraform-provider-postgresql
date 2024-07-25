@@ -38,8 +38,9 @@ jobs:
               'state': 'closed',
               'base': 'dev'
             })
+            const list = prListOpts.data.map((x) => ({'title': x.title, 'head': x.head}));
             
-            console.log('PR_LIST:', prListOpts );
+            console.log('PR_LIST:', list);
             
             const msg = context.payload.head_commit.message;        // get latest commit on the branch
             let [title, ...body] = msg.split('\n').filter((x) => !!x); // split the commit message into title and body
