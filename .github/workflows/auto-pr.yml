@@ -32,7 +32,7 @@ jobs:
         with:
           script: |
             let [accOwner, repoName] = [context.repo.owner, context.repo.repo];
-            const prListOpts = github.rest.pulls.list({
+            const prListOpts = await github.rest.pulls.list({
               'owner': accOwner,
               'repo': repoName,
               'state': 'all',
