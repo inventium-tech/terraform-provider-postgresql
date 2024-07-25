@@ -4,7 +4,8 @@ run-name: '🚀 Release - ${{ github.ref_name }}'
 on:
   workflow_run:
     workflows:
-      - build
+      - 'build'
+      - '🛠️ Build - dev'
     types:
       - completed
     branches:

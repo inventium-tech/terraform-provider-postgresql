@@ -32,6 +32,7 @@ golangci
 gomod
 goreleaser
 gosimple
+govet
 healthcheck
 ineffassign
 inventium
