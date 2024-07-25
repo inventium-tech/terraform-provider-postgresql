@@ -40,12 +40,7 @@ jobs:
             let [title, body] = msg.split('\n').filter((x) => !!x);         // split the commit message into title and body
             
             console.log("PAYLOAD:", {
-              owner: context.repo.owner    // The account owner of the repository
-              head: '${{ github.ref_name}}' // The name of the branch where your changes are implemented
-              base: 'dev'                   // The name of the branch you want the changes pulled into
-              title: title                  // The title of the pull request
-              body: body.join('\n')         // The body of the pull request
-              maintainer_can_modify: true   // Allow maintainers to modify the PR
+              "owner": context.repo.owner
             });
 
 #            let [owner, repoName...] = `${{ github.repository }}`.split('/');  // get the owner and repo name
