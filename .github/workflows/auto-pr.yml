@@ -1,4 +1,5 @@
 name: auto-pr
+run-name: '🤖 Auto PR - ${{ github.ref_name }}'
 
 on:
   push:
@@ -32,7 +33,7 @@ jobs:
           script: |
             
             console.log("USE CONTEXT:", ${{ github.ref_name}})
-            console.log({context.payload})
+            console.log(context.payload)
             
             const msg = context.payload.head_commit.message;        // get latest commit on the branch
             let [title, body] = msg.split('\n').filter((x) => !!x); // split the commit message into title and body
