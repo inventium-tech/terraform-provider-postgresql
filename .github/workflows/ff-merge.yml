@@ -2,7 +2,7 @@ name: ff-merge
 run-name: '🔀 Fast-Forward Merge - ${{ github.ref_name }}'
 
 on:
-  pull_request_target: # Trigger action only on pull-requests
+  pull_request: # Trigger action only on pull-requests
     types:
       - synchronize
       - opened
@@ -22,7 +22,7 @@ jobs:
       - name: Check Fast-Forwardness 🚀
         run: |
           git fetch origin ${{ github.head_ref }}:refs/remotes/origin/${{ github.head_ref }}
-          git merge-base --is-ancestor origin/${{ github.head_ref }} origin/main
+          git merge-base --is-ancestor origin/${{ github.head_ref }} ${{ github.base_ref }}
           if [ $? -ne 0 ]; then
             echo "This PR is not fast-forwardable. Please rebase your branch."
             exit 1
