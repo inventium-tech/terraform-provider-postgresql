@@ -21,7 +21,9 @@ jobs:
       issues: write
     steps:
       - name: Checkout 💻
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.1.7]
+        with:
+          fetch-depth: 0
 
       - name: Check Fast-Forwardness 🔍
         id: ff_merge_check
@@ -29,6 +31,9 @@ jobs:
         run: |
           BASE_BRANCH='${{ github.base_ref }}'
           HEAD_BRANCH='${{ github.head_ref }}'
+          
+          git fetch origin $BASE_BRANCH
+          git fetch origin $HEAD_BRANCH
           
           MERGE_BASE_REF=$(git merge-base $HEAD_BRANCH $BASE_BRANCH)
           REV_PARSE_BASE_REF=$(git rev-parse $BASE_BRANCH)
