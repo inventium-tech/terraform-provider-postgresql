@@ -10,14 +10,10 @@ on:
     branches:
       - dev
       - main
-  pull_request:
+  pull_request_target:
     branches:
       - dev
       - main
-    types:
-      - opened
-      - reopened
-      - synchronize
     paths-ignore:
       - 'assets/**'
       - 'docs/**'

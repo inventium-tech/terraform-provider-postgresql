@@ -2,7 +2,7 @@ name: ff-merge
 run-name: '🔀 Fast-Forward Merge - ${{ github.ref_name }}'
 
 on:
-  pull_request: # Trigger action only on pull-requests
+  pull_request_target: # Trigger action only on pull-requests
     types:
       - synchronize
       - opened
