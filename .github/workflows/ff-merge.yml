@@ -15,18 +15,36 @@ jobs:
   check-ffnes:
     name: Check Fast-Forwardness
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: write
     steps:
       - name: Checkout 💻
         uses: actions/checkout@v4.1.7
 
-      - name: Check Fast-Forwardness 🚀
+      - name: Check Fast-Forwardness 🔍
+        id: ff_merge_check
+        shell: bash
         run: |
-          git fetch origin ${{ github.head_ref }}:refs/remotes/origin/${{ github.head_ref }}
-          git merge-base --is-ancestor origin/${{ github.head_ref }} ${{ github.base_ref }}
-          if [ $? -ne 0 ]; then
-            echo "This PR is not fast-forwardable. Please rebase your branch."
-            exit 1
-          else
+          BASE_BRANCH='${{ github.base_ref }}'
+          HEAD_BRANCH='${{ github.head_ref }}'
+          
+          MERGE_BASE_REF=$(git merge-base $HEAD_BRANCH $BASE_BRANCH)
+          REV_PARSE_BASE_REF=$(git rev-parse $BASE_BRANCH)
+          
+          if [ $MERGE_BASE_REF == $REV_PARSE_BASE_REF ]; then
             echo "This PR is fast-forwardable."
-          fi
+            echo "ff_merge=1" >> $GITHUB_OUTPUT
+          else
+            echo "This PR is not fast-forwardable. Please rebase your branch."
+            echo "ff_merge=0" >> $GITHUB_OUTPUT
+          fi;
 
+      - name: Set Label 🏷️
+        uses: actions/github-script@v7.0.1
+        id: ff-merge-label
+        if: steps.ff_merge_check.outputs.ff_merge == '1'
+        run: |
+          console.log('PAYLOAD:', context.payload);
+          console.log('ISSUE:', context.issue);
