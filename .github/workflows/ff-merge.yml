@@ -30,12 +30,12 @@ jobs:
         shell: bash
         run: |
           BASE_BRANCH='${{ github.base_ref }}'
-          HEAD_BRANCH='${{ github.head_ref }}'
+          HEAD_BRANCH='${{ github.event.pull_request.head.ref }}'
           
           git fetch origin $BASE_BRANCH
           git fetch origin $HEAD_BRANCH
           
-          MERGE_BASE_REF=$(git merge-base $HEAD_BRANCH $BASE_BRANCH)
+          MERGE_BASE_REF=$(git merge-base origin/$HEAD_BRANCH $BASE_BRANCH)
           
 
       - name: Set Label 🏷️
