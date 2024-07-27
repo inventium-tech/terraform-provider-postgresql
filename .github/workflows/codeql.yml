@@ -11,14 +11,10 @@ on:
       - 'assets/**'
       - 'docs/**'
       - 'examples/**'
-  pull_request:
+  pull_request_target:
     branches:
       - dev
       - main
-    types:
-      - opened
-      - reopened
-      - synchronize
     paths-ignore:
       - 'README.md'
       - 'assets/**'
