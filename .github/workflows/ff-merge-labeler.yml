@@ -60,7 +60,8 @@ jobs:
         id: ff-merge-label
         with:
           script: |
-            console.info('GH_CONTEXT_EVENT_PULL_REQUEST:', {${{ toJSON(github.event.pull_request) }}});
+            console.info('GH_CONTEXT_EVENT_PULL_REQUEST:', ${{ github.event }});
+            console.info('GH_CONTEXT_EVENT_PULL_REQUEST:', ${{ toJSON(github.event.pull_request) }});
             const prNumber = context.issue.number;
 
             if ('${{ needs.check_ffmerge.outputs.ff_merge }}' === '0') {
