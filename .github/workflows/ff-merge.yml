@@ -34,6 +34,10 @@ jobs:
           
           git fetch origin $BASE_BRANCH
           git fetch origin $HEAD_BRANCH
+          
+          MERGE_BASE_REF=$(git merge-base $HEAD_BRANCH $BASE_BRANCH)
+          
+
       - name: Set Label 🏷️
         uses: actions/github-script@v7.0.1
         id: ff-merge-label
