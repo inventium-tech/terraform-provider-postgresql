@@ -45,7 +45,7 @@ jobs:
             echo "ff_merge=0" >> $GITHUB_OUTPUT
           fi;
 
-  toggle-ff-label:
+  toggle_ff_label:
     name: Toggle Fast-Forward Merge Label
     runs-on: ubuntu-latest
     permissions:
@@ -61,7 +61,7 @@ jobs:
           script: |
             const prNumber = context.issue.number;
             
-            if ('${{ jobs.check_ffmerge.outputs.ff_merge }}'' === '0') {
+            if ('${{ steps.ff_merge_check.outputs.ff_merge }}'' === '0') {
               await github.rest.pulls.removeLabel({
                 'owner': context.repo.owner,  // The account owner of the repository
                 'repo': context.repo.repo,    // The name of the repository without the .git extension
