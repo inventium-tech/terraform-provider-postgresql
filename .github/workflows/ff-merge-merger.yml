@@ -1,0 +1,57 @@
+name: ff-merge-labeler
+run-name: '🔀 FF Merge - PR #${{ github.event.issue_comment.issue.id }}'
+
+on:
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  contents: read
+
+jobs:
+  check_comment:
+    name: Check FF-Merge Comment
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+    steps:
+      - name: Check Comment Author 🕵️
+        id: ff_merge_check_valid_commentor
+        shell: bash
+        run: |
+          if [ ${{ github.event.issue_comment.comment.author_association }} == 'MEMBER' ]; then
+            echo "✅ The comment author is a member of the organization."
+            echo "valid_commentor=1" >> $GITHUB_OUTPUT
+          else
+            echo "❌ The comment author is not a member of the organization. (Expected: MEMBER)"
+            echo "valid_commentor=0" >> $GITHUB_OUTPUT
+          fi;
+
+      - name: Check Comment Content 📝
+        id: ff_merge_check_comment_content
+        if: ${{ success() }}
+        shell: bash
+        run: |
+          if [ ${{ github.event.issue_comment.comment.body }} == '/ff-merge' ]; then
+            echo "✅ The comment content is valid."
+            echo "valid_comment=1" >> $GITHUB_OUTPUT
+          else
+            echo "❌ The comment content is invalid. (Expected: /ff-merge)"
+            echo "valid_comment=0" >> $GITHUB_OUTPUT
+          fi;
+
+      - name: Check Issue Labels 🏷️
+        id: ff_merge_check_issue_labels
+        if: ${{ success() }}
+        shell: bash
+        run: |
+          if [ $(echo ${{ github.event.issue.labels }} | grep -c 'ff-merge') -eq 0 ]; then
+            echo "❌ The issue does not have the 'fast-forward-merge' label."
+            echo "valid_label=0" >> $GITHUB_OUTPUT
+          else
+            echo "✅ The issue has the 'fast-forward-merge' label."
+            echo "valid_label=1" >> $GITHUB_OUTPUT
+          fi;
+
