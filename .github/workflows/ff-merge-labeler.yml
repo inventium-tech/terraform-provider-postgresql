@@ -59,5 +59,4 @@ jobs:
         id: ff-merge-label
         with:
           script: |
-            console.log('JOBS_OUTPUTS:', ${{ jobs.check_ffmerge.outputs }});
             console.log('NEEDS_OUTPUTS:', ${{ needs.check_ffmerge.outputs }});
