@@ -60,7 +60,7 @@ jobs:
         if: ${{ needs.check_ffmerge.outputs.ff_merge == '1' }}
         with:
           script: |
-            console.info('CONTEXT_ISSUE:', `${context.issue}`);
+            console.info('CONTEXT_ISSUE:', context.issue);
             console.info('Add Fast-Forward Merge Label for PR:', '${{ github.event.pull_request.url }}');
             await github.rest.issues.addLabels({
               'owner': context.repo.owner,          // The account owner of the repository
