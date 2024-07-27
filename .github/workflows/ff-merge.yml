@@ -35,8 +35,17 @@ jobs:
           git fetch origin $BASE_BRANCH
           git fetch origin $HEAD_BRANCH
           
-          MERGE_BASE_REF=$(git merge-base origin/$HEAD_BRANCH $BASE_BRANCH)
+          MERGE_BASE_REF=$(git merge-base origin/$HEAD_BRANCH origin/$BASE_BRANCH)
+          REV_PARSE_BASE_REF=$(git rev-parse origin/$BASE_BRANCH)
           
+          if [ $MERGE_BASE_REF == $REV_PARSE_BASE_REF ]; then
+            echo "This PR is fast-forwardable."
+            echo "ff_merge=1" >> $GITHUB_OUTPUT
+          else
+            echo "This PR is not fast-forwardable. Please rebase your branch."
+            echo "ff_merge=0" >> $GITHUB_OUTPUT
+          fi;
+
 
       - name: Set Label 🏷️
         uses: actions/github-script@v7.0.1
