@@ -68,7 +68,8 @@ jobs:
                 'issue_number': prNumber,     // The number that identifies the issue (PR)
                 'name': 'ff-merge'            // The name of label to remove from to the issue (PR)
               });
-              echo "Fast-Forward Merge label added to PR.";
+              console.log("Fast-Forward Merge label added to PR.");
+            
             } else {
               await github.rest.issues.addLabels({
                 'owner': context.repo.owner,  // The account owner of the repository
@@ -77,6 +78,6 @@ jobs:
                 'labels': ['ff-merge']        // The label to add to the issue (PR)
               });
             
-              echo "Fast-Forward Merge label removed from PR.";
+              console.log("Fast-Forward Merge label removed from PR.");
             }
 
