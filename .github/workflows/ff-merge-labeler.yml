@@ -60,7 +60,7 @@ jobs:
         id: ff-merge-label
         with:
           script: |
-            console.log('GH_CONTEXT_EVENT_PULL_REQUEST:', ${{ github.event.pull_request }});
+            console.info('GH_CONTEXT_EVENT_PULL_REQUEST:', ${{ github.event.pull_request }});
             const prNumber = context.issue.number;
 
             if ('${{ needs.check_ffmerge.outputs.ff_merge }}' === '0') {
@@ -70,7 +70,7 @@ jobs:
                 'issue_number': prNumber,     // The number that identifies the issue (PR)
                 'name': 'ff-merge'            // The name of label to remove from to the issue (PR)
               });
-              console.log("Fast-Forward Merge label added to PR.");
+              console.log("Fast-Forward Merge label remvoed from PR #", ${{ github.event.pull_request.number }});
 
             } else {
               await github.rest.issues.addLabels({
@@ -80,5 +80,5 @@ jobs:
                 'labels': ['ff-merge']        // The label to add to the issue (PR)
               });
 
-              console.log("Fast-Forward Merge label removed from PR.");
+              console.log("Fast-Forward Merge label added to PR #", ${{ github.event.pull_request.number }});
             }
