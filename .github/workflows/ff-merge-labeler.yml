@@ -53,10 +53,31 @@ jobs:
       issues: write
       pull-requests: write
     needs: check_ffmerge
+    if: ${{ success() }}
     steps:
       - name: Set Label 🏷️
         uses: actions/github-script@v7.0.1
         id: ff-merge-label
         with:
           script: |
-            console.log('NEEDS_OUTPUTS:', ${{ needs.check_ffmerge.outputs }});
+            const prNumber = context.issue.number;
+
+            if ('${{ needs.check_ffmerge.outputs.ff_merge }}' === '0') {
+              await github.rest.pulls.removeLabel({
+                'owner': context.repo.owner,  // The account owner of the repository
+                'repo': context.repo.repo,    // The name of the repository without the .git extension
+                'issue_number': prNumber,     // The number that identifies the issue (PR)
+                'name': 'ff-merge'            // The name of label to remove from to the issue (PR)
+              });
+              console.log("Fast-Forward Merge label added to PR.");
+
+            } else {
+              await github.rest.issues.addLabels({
+                'owner': context.repo.owner,  // The account owner of the repository
+                'repo': context.repo.repo,    // The name of the repository without the .git extension
+                'issue_number': prNumber,     // The number that identifies the issue (PR)
+                'labels': ['ff-merge']        // The label to add to the issue (PR)
+              });
+
+              console.log("Fast-Forward Merge label removed from PR.");
+            }
