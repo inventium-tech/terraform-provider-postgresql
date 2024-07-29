@@ -1,5 +1,3 @@
-name: Go Setup
-
 on:
   workflow_call:
     inputs:
@@ -8,9 +6,6 @@ on:
         default: '1.21'
         required: false
         type: string
-
-permissions:
-  contents: read
 
 jobs:
   go-setup:
