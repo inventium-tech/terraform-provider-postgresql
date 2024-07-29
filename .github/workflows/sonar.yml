@@ -31,10 +31,6 @@ jobs:
   sonarcloud:
     name: SonarCloud Scan
     runs-on: ubuntu-latest
-    needs:
-      - build
-      - test-unit
-      - test-acc
     steps:
       - name: Checkout 💻
         uses: actions/checkout@v4.1.7
