@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: Setup Go environment ⚙️
-        uses: ./.github/workflows/go.yml
+        uses: ./.github/workflows/go
 
       - name: Go Build 🛠️
         run: go build -v ./...
@@ -50,7 +50,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: Setup Go environment ⚙️
-        uses: ./.github/workflows/go.yml
+        uses: ./.github/workflows/go
 
       - name: Go Unit Test 🧪
         run: go test ./... -v -coverprofile=unit-test.lcov -json > unit-test.log
@@ -82,7 +82,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: Setup Go environment ⚙️
-        uses: ./.github/workflows/go.yml
+        uses: ./.github/workflows/go
 
       - name: Terraform Setup 🏗️
         uses: hashicorp/setup-terraform@v3.1.1
@@ -126,7 +126,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: Setup Go environment ⚙️
-        uses: ./.github/workflows/go.yml
+        uses: ./.github/workflows/go
 
       - name: Go Generate 📜
         run: go generate ./...
