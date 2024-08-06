@@ -1,6 +1,9 @@
+alphanumunicode
 awspostgres
+basetypes
 booldefault
 boolplanmodifier
+commiting
 conventionalcommits
 coverprofile
 ctype
@@ -12,6 +15,7 @@ datconnlimit
 datctype
 datdba
 datname
+dbname
 ddea
 dessant
 durationcheck
@@ -43,6 +47,7 @@ markdownlint
 megalinter
 nilerr
 nolint
+oneof
 oxsecurity
 pgclient
 planmodifier
@@ -65,6 +70,7 @@ stretchr
 stringplanmodifier
 stringvalidator
 tenv
+testcontainer
 testcontainers
 tflog
 tfplugindocs
