@@ -1,5 +1,5 @@
 name: sonar
-run-name: '🔍 Sonar Scan - ${{ github.ref_name }}'
+run-name: '🎯 Sonar Scan - ${{ github.ref_name }}'
 
 on:
   push:
@@ -48,7 +48,7 @@ jobs:
         with:
           name: acc-test-reports-${{ github.sha }}
 
-      - name: SonarCloud Scan 🔍
+      - name: SonarCloud Scan 🎯
         uses: sonarsource/sonarcloud-github-action@v2.3.0 # See the latest version at https://github.com/marketplace/actions/sonarcloud-scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

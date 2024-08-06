@@ -1,14 +1,17 @@
 <p align="center">
   <img src="./assets/provider_logo.svg" width="200" alt="logo"/>
 </p>
+
 ---
 
 ![Golang](https://img.shields.io/badge/-Golang-black?style=for-the-badge&logoColor=white&logo=go&color=00ADD8)
 ![Postgres](https://img.shields.io/badge/-PostgreSQL-black?style=for-the-badge&logoColor=white&logo=postgresql&color=4169E1)
 ![Terraform](https://img.shields.io/badge/-Terraform-black?style=for-the-badge&logoColor=white&logo=terraform&color=844FBA)
 
-[![⚙️ Build Workflow](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/build.yml/badge.svg)](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/build.yml)
-[![🔎 MegaLinter](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/lint.yml/badge.svg)](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/mega-linter.yml)
+[![🛠️ Build Workflow](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/build.yml/badge.svg)](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/build.yml)
+[![🔎 MegaLinter](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/mega-linter.yml/badge.svg)](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/mega-linter.yml)
+[![❇️ CodeQL](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/codeql.yml/badge.svg)](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/codeql.yml)
+[![🎯 SonarQube](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/codeql.yml/badge.svg)](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/codeql.yml)
 
 ![GitHub language count](https://img.shields.io/github/languages/count/inventium-tech/terraform-provider-postgresql)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/inventium-tech/terraform-provider-postgresql/go.yml?branch=main&logo=githubactions&logoColor=white&logoSize=5)
