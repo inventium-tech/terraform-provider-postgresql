@@ -82,7 +82,7 @@ func (f userFunctionSQL) Create(ctx context.Context, params UserFunctionCreatePa
 	}
 
 	if err = txn.Commit(); err != nil {
-		return WrapPgError(err, msgErrorCommitingTransaction)
+		return WrapPgError(err, msgErrorCommittingTransaction)
 	}
 
 	slog.Info(fmt.Sprintf(msgSuccessCreatingObject, functionObjectType), "rows_affected", rowsAffected)

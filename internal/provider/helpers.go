@@ -14,7 +14,7 @@ import (
 	"terraform-provider-postgresql/internal/client"
 )
 
-// common error messages
+// common error messages.
 const (
 	msgErrGetPgConnection = "Error establishing a PostgreSQL connection"
 	msgErrMapPgModel      = "Error mapping Postgres model to Terraform model"
@@ -79,16 +79,35 @@ func mapSetValueToSlice[T string | int | int32 | int64 | bool](set basetypes.Set
 	for _, elem := range set.Elements() {
 		switch elem.(type) {
 		case basetypes.StringValue:
-			parsedElem = any(elem).(basetypes.StringValue).ValueString()
+			attrValue, ok := any(elem).(basetypes.StringValue)
+			if !ok {
+				continue
+			}
+			parsedElem = attrValue.ValueString()
 		case basetypes.Int32Value:
-			parsedElem = any(elem).(basetypes.Int32Value).ValueInt32()
+			attrValue, ok := any(elem).(basetypes.Int32Value)
+			if !ok {
+				continue
+			}
+			parsedElem = attrValue.ValueInt32()
 		case basetypes.Int64Value:
-			parsedElem = any(elem).(basetypes.Int64Value).ValueInt64()
+			attrValue, ok := any(elem).(basetypes.Int64Value)
+			if !ok {
+				continue
+			}
+			parsedElem = attrValue.ValueInt64()
 		case basetypes.BoolValue:
-			parsedElem = any(elem).(basetypes.BoolValue).ValueBool()
+			attrValue, ok := any(elem).(basetypes.BoolValue)
+			if !ok {
+				continue
+			}
+			parsedElem = attrValue.ValueBool()
 		}
-
-		slice = append(slice, parsedElem.(T))
+		value, ok := parsedElem.(T)
+		if !ok {
+			continue
+		}
+		slice = append(slice, value)
 	}
 	return slice
 }
@@ -124,6 +143,7 @@ func mapPgModelToTerraformModel(src, dest interface{}, customAssign map[string]a
 
 		var srcFieldValue interface{}
 		var diagErr diag.Diagnostics
+		const fieldTypeError = "field types do not match"
 
 		switch destField.Type() {
 		case reflect.TypeOf(basetypes.StringValue{}):
@@ -133,13 +153,17 @@ func mapPgModelToTerraformModel(src, dest interface{}, customAssign map[string]a
 		case reflect.TypeOf(basetypes.BoolValue{}):
 			srcFieldValue = types.BoolValue(srcField.Bool())
 		case reflect.TypeOf(basetypes.SetValue{}):
-			setValue := destField.Interface().(basetypes.SetValue)
-			srcFieldValue, diagErr = types.SetValueFrom(context.TODO(), setValue.ElementType(nil), srcField.Interface())
+			setValue, ok := destField.Interface().(basetypes.SetValue)
+			if !ok {
+				return fmt.Errorf(fieldTypeError)
+			}
+			ctx := context.TODO()
+			srcFieldValue, diagErr = types.SetValueFrom(ctx, setValue.ElementType(ctx), srcField.Interface())
 			if diagErr.HasError() {
 				return fmt.Errorf(diagErr[0].Summary())
 			}
 		default:
-			return fmt.Errorf("field types do not match")
+			return fmt.Errorf(fieldTypeError)
 		}
 
 		destField.Set(reflect.ValueOf(srcFieldValue))

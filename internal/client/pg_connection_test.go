@@ -220,7 +220,7 @@ func TestPgConnection_EventTriggerRepository(t *testing.T) {
 	assert.Equal(t, repoFirstCall, repoSecondCall)
 
 	// forced to nil should create a new one
-	conn.(*pgConnection).eventTriggerRepository = nil
+	conn.(*pgConnection).eventTriggerRepository = nil //nolint:forcetypeassert
 	repoThirdCall := conn.EventTriggerRepository()
 	assert.NotNil(t, repoThirdCall)
 }

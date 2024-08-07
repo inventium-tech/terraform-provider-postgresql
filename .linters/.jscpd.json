@@ -13,6 +13,8 @@
     "**/report/**",
     "**/.ml-reports/**",
     "**/*.svg",
-    "**/*_test.go"
+    "**/*_test.go",
+    "./examples/**",
+    "./docs/**"
   ]
 }

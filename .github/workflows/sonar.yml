@@ -2,26 +2,11 @@ name: sonar
 run-name: '🎯 Sonar Scan - ${{ github.ref_name }}'
 
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - 'README.md'
-      - 'assets/**'
-      - 'docs/**'
-      - 'examples/**'
-  pull_request_target:
-    branches:
-      - main
+  workflow_run:
+    workflows:
+      - build
     types:
-      - opened
-      - reopened
-      - synchronize
-    paths-ignore:
-      - 'README.md'
-      - 'assets/**'
-      - 'docs/**'
-      - 'examples/**'
+      - completed
 
 permissions:
   contents: read

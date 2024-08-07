@@ -18,7 +18,7 @@ func (e *pgError) Error() string {
 }
 
 // Unwrap allows errors wrapped by errMetadata to be compatible with
-// standard error unwrapping mechanism
+// standard error unwrapping mechanism.
 func (e *pgError) Unwrap() error {
 	return e.err
 }

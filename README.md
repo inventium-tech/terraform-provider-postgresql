@@ -11,7 +11,6 @@
 [![🛠️ Build Workflow](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/build.yml/badge.svg)](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/build.yml)
 [![🔎 MegaLinter](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/mega-linter.yml/badge.svg)](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/mega-linter.yml)
 [![❇️ CodeQL](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/codeql.yml/badge.svg)](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/codeql.yml)
-[![🎯 SonarQube](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/codeql.yml/badge.svg)](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/codeql.yml)
 
 ![GitHub language count](https://img.shields.io/github/languages/count/inventium-tech/terraform-provider-postgresql)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/inventium-tech/terraform-provider-postgresql/go.yml?branch=main&logo=githubactions&logoColor=white&logoSize=5)
@@ -29,7 +28,7 @@
 
 Yet another Terraform provider for PostgreSQL. This one is built using the latest and suggested practices for
 Terraform providers. That means it is built using the
-(Terraform Plugin Framework)[https://developer.hashicorp.com/terraform/plugin/framework].
+[Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework).
 
 ## ❗ READ BEFORE USE
 

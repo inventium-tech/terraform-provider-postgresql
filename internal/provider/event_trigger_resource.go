@@ -49,9 +49,6 @@ func NewEventTriggerResource() resource.Resource {
 }
 
 func (r *eventTriggerResource) Configure(ctx context.Context, req resource.ConfigureRequest, res *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
 	tflog.Trace(ctx, "Configuring 'event_trigger' resource")
 
 	pgClient, diags := parsePgClientFromRequest(ctx, req)
@@ -68,7 +65,7 @@ func (r *eventTriggerResource) Metadata(_ context.Context, req resource.Metadata
 	res.TypeName = req.ProviderTypeName + "_event_trigger"
 }
 
-func (r *eventTriggerResource) Schema(_ context.Context, req resource.SchemaRequest, res *resource.SchemaResponse) {
+func (r *eventTriggerResource) Schema(_ context.Context, _ resource.SchemaRequest, res *resource.SchemaResponse) {
 	res.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

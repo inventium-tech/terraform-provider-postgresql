@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	msgErrorCommitingTransaction       = "error commiting transaction."
+	msgErrorCommittingTransaction      = "error committing transaction."
 	msgErrorCreatingObject             = "error creating %s."
 	msgErrorExecContextGetRowsAffected = "error retrieving rows affected by query execution."
 	msgErrorStartingTransaction        = "error starting transaction."

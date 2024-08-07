@@ -92,7 +92,6 @@ func (o *PgConnectionOpts) FromConnectionString(connString string) error {
 	switch len(u.Port()) {
 	case 0:
 		port = 5432
-		break
 	default:
 		port, err = strconv.Atoi(u.Port())
 		if err != nil {

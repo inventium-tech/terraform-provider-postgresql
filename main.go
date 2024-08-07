@@ -1,12 +1,8 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package main
 
 import (
 	"context"
 	"flag"
-	"github.com/go-playground/validator/v10"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
@@ -34,22 +30,16 @@ var (
 
 func main() {
 	var debug bool
-	var validate *validator.Validate
 
 	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
-
-	validate = validator.New(validator.WithRequiredStructEnabled())
 
 	opts := providerserver.ServeOpts{
 		Address: "registry.terraform.io/inventium-tech/postgresql",
 		Debug:   debug,
 	}
 
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, "validator", validate)
-
-	err := providerserver.Serve(ctx, provider.NewProvider(version), opts)
+	err := providerserver.Serve(context.Background(), provider.NewProvider(version), opts)
 
 	if err != nil {
 		log.Fatal(err.Error())
