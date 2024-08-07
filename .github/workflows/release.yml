@@ -1,5 +1,6 @@
 # Terraform Provider release workflow.
-name: '🚀 Release - ${{ github.ref_name }}'
+name: release
+run-name: '🚀 Release - ${{ github.ref_name }}'
 
 # This GitHub action creates a release when a tag that matches the pattern
 # "v*" (e.g. v0.1.0) is created.
