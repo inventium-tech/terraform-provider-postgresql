@@ -1,7 +1,8 @@
 module terraform-provider-postgresql
 
-go 1.21.0
-toolchain go1.22.5
+go 1.22.0
+
+toolchain go1.23.2
 
 require (
 	github.com/go-playground/validator/v10 v10.22.1
@@ -15,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.33.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.33.0
-	gocloud.dev v0.39.0
+	gocloud.dev v0.40.0
 )
 
 require (
