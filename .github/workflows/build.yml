@@ -5,9 +5,11 @@ on:
   push:
     branches:
       - main
+      - dev
   pull_request_target:
     branches:
       - main
+      - dev
     types:
       - opened
       - reopened
@@ -26,10 +28,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 💻
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.2
 
       - name: Setup Go environment ⚙️
-        uses: actions/setup-go@v5.0.2
+        uses: actions/setup-go@v5.5.0
         with:
           go-version-file: 'go.mod'
           cache: true
@@ -53,10 +55,10 @@ jobs:
       - build
     steps:
       - name: Checkout 💻
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.2
 
       - name: Setup Go environment ⚙️
-        uses: actions/setup-go@v5.0.2
+        uses: actions/setup-go@v5.5.0
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -67,7 +69,7 @@ jobs:
         run: go test ./... -v -coverprofile=unit-test.lcov -json > unit-test.log
 
       - name: Upload Unit Test Artifacts ⏫
-        uses: actions/upload-artifact@v4.3.4
+        uses: actions/upload-artifact@v4.6.2
         if: ${{ success() }}
         with:
           name: unit-test-reports-${{ github.sha }}
@@ -85,15 +87,15 @@ jobs:
       fail-fast: false
       matrix:
         tf-version:
-          - '1.6.*'
-          - '1.7.*'
-          - '1.8.*'
+          - '1.9.*'
+          - '1.10.*'
+          - '1.11.*'
     steps:
       - name: Checkout 💻
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.2
 
       - name: Setup Go environment ⚙️
-        uses: actions/setup-go@v5.0.2
+        uses: actions/setup-go@v5.5.0
         with:
           go-version: '1.21'
 
@@ -116,7 +118,7 @@ jobs:
           files: unit-test.lcov,acc-test.lcov
 
       - name: Upload Acceptance Test Artifacts ⏫
-        uses: actions/upload-artifact@v4.3.4
+        uses: actions/upload-artifact@v4.6.2
         if: ${{ success() }}
         with:
           name: acc-test-reports-${{ github.sha }}
@@ -136,10 +138,10 @@ jobs:
       - test-acc
     steps:
       - name: Checkout 💻
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.2
 
       - name: Setup Go environment ⚙️
-        uses: actions/setup-go@v5.0.2
+        uses: actions/setup-go@v5.5.0
         with:
           go-version-file: 'go.mod'
           cache: true
@@ -156,22 +158,22 @@ jobs:
       - test-acc
     steps:
       - name: Checkout 💻
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.2
         with:
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
 
       - name: Download Unit Test Artifact ⏬
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4.3.0
         with:
           name: unit-test-reports-${{ github.sha }}
 
       - name: Download Acceptance Test Artifact ⏬
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4.3.0
         with:
           name: acc-test-reports-${{ github.sha }}
 
       - name: SonarCloud Scan 🎯
-        uses: sonarsource/sonarcloud-github-action@v2.3.0 # See the latest version at https://github.com/marketplace/actions/sonarcloud-scan
+        uses: SonarSource/sonarqube-scan-action@v5.2.0 # See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
