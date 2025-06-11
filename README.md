@@ -44,13 +44,13 @@ _status:_
 * ✅ Supported
 * 🔜 Coming Soon
 
-| Name          | Resource | Data Source |
-|---------------|:--------:|:-----------:|
-| Event Trigger |    ✅     |      ✅      |
-| Functions     |    🔜    |     🔜      |
-| Database      |    🔜    |     🔜      |
-| Schema        |    🔜    |     🔜      |
-| Role          |    🔜    |     🔜      |
+| Name          | Resource | Data Source | Write-Only Attr | Ephemeral Resource |
+|---------------|:--------:|:-----------:|:---------------:|--------------------|
+| Event Trigger |    ✅     |      ✅      |                 |                    |
+| Functions     |    ✅     |     🔜      |                 |                    |
+| Role          |    ✅     |     🔜      |        ✅        |                    |
+| Database      |    🔜    |     🔜      |                 |                    |
+| Schema        |    🔜    |     🔜      |                 |                    |
 
 <a href="https://www.buymeacoffee.com/refucktor" target="_blank">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee"
