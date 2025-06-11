@@ -1,0 +1,41 @@
+name: semantic-release
+run-name: '🚀 Semantic Release - ${{ github.ref_name }}'
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+
+permissions:
+  contents: write # to be able to publish a GitHub release
+  issues: write # to be able to comment on released issues
+  pull-requests: write # to be able to comment on released pull requests
+
+jobs:
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 💻
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js environment ⚙️
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies 📦
+        run: npm clean-install
+
+      - name: Verify integrity 🔍
+        run: npm audit signatures
+
+      - name: Semantic Release 🚀
+        run: npx semantic-release
+        env:
+          # GitHub sets the GITHUB_TOKEN secret automatically.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
