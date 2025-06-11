@@ -11,7 +11,7 @@ var _ validator.String = postgresqlObjectNameValidator{}
 
 type postgresqlObjectNameValidator struct{}
 
-func (v postgresqlObjectNameValidator) Description(ctx context.Context) string {
+func (v postgresqlObjectNameValidator) Description(_ context.Context) string {
 	return "postgresql object name must match the regex ^[a-zA-Z_][a-zA-Z0-9_]*$"
 }
 
