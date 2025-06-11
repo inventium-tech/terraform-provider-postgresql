@@ -58,11 +58,11 @@ provider "postgresql" {
 - `host` (String) The hostname of the PostgreSQL server. May be set via the environment variable `POSTGRES_HOST`.
 - `password` (String, Sensitive) The password to use when connecting to the PostgreSQL server. May be set via the environment variable `POSTGRES_PASSWORD`.
 - `port` (Number) The port of the PostgreSQL server. May be set via the environment variable `POSTGRES_PORT`. (default: 5432)
-- `scheme` (String) The schema to use when connecting to the PostgreSQL database. The value must be one of the following:
+- `scheme` (String) The scheme to use when connecting to the PostgreSQL database. The value must be one of the following:
 	* 'postgres' (default)
 	* 'gcppostgres'	
 	* 'awspostgres'
-May be set via the environment variable 'POSTGRES_SCHEMA'. (default: 'postgres')
+May be set via the environment variable 'POSTGRES_SCHEME'. (default: 'postgres')
 - `sslmode` (String) The SSL mode to use when connecting to the PostgreSQL server. The value must be one of the following:
 	* 'disable' (No SSL)
 	* 'require' (*default*. Always SSL, skip verification)

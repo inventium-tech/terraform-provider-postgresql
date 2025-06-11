@@ -27,7 +27,7 @@ resource "postgresql_user_function" "greet_example" {
   EOT
 
   comment = "A simple greeting function"
-  owner   = "jhon_doe"
+  owner   = "john_doe"
 }
 ```
 

@@ -97,12 +97,12 @@ func (p *PostgresqlProvider) Schema(_ context.Context, _ provider.SchemaRequest,
 			"scheme": schema.StringAttribute{
 				Optional: true,
 				Description: `
-The schema to use when connecting to the PostgreSQL database. The value must be one of the following:
+The scheme to use when connecting to the PostgreSQL database. The value must be one of the following:
 	* 'postgres' (default)
 	* 'gcppostgres'	
 	* 'awspostgres'
-May be set via the environment variable 'POSTGRES_SCHEMA'. (default: 'postgres')
-				`,
+May be set via the environment variable 'POSTGRES_SCHEME'. (default: 'postgres')
+                                `,
 				Validators: []validator.String{
 					stringvalidator.OneOf("postgres", "gcppostgres", "awspostgres"),
 				},
