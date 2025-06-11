@@ -9,9 +9,11 @@ on:
   push:
     branches:
       - main
+      - dev
   pull_request_target:
     branches:
       - main
+      - dev
     types:
       - opened
       - reopened
@@ -41,10 +43,10 @@ jobs:
 
     steps:
       - name: Checkout 💻
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.2
 
       - name: MegaLinter 🔍
-        uses: oxsecurity/megalinter/flavors/go@v7.13.0
+        uses: oxsecurity/megalinter/flavors/go@v8.7.0
         id: ml
 
         # All available variables are described in documentation
@@ -65,12 +67,11 @@ jobs:
           VALIDATE_ALL_CODEBASE: true
           DEFAULT_WORKSPACE: ${{ github.workspace }}
           REPORT_OUTPUT_FOLDER: ${{ github.workspace }}/.ml-reports
-
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v4.3.4
+        uses: actions/upload-artifact@v4.6.2
         if: ${{ success() || failure() }}
         with:
           name: MegaLinter reports
