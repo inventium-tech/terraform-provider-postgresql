@@ -1,10 +1,9 @@
 package helpers
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"unicode"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestRandomString(t *testing.T) {
@@ -48,13 +47,13 @@ func TestRandomString(t *testing.T) {
 			assert.Equal(t, tt.wantLen, len(result), "RandomString() length = %v, want %v", len(result), tt.wantLen)
 
 			// Check content type
-			if tt.wantType == "empty" {
+			switch tt.wantType {
+			case "empty":
 				assert.Empty(t, result, "RandomString() should return empty string")
-			} else if tt.wantType == "alphanumeric" {
+			case "alphanumeric":
 				for _, char := range result {
-					assert.True(t,
-						unicode.IsLetter(char) || unicode.IsDigit(char),
-						"RandomString() contains non-alphanumeric character: %c", char)
+					isAlphanumeric := unicode.IsLetter(char) || unicode.IsDigit(char)
+					assert.True(t, isAlphanumeric, "RandomString() contains non-alphanumeric character: %c", char)
 				}
 			}
 		})

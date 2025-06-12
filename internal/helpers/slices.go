@@ -16,7 +16,7 @@ func CleanUpSlice[T ~[]E, E comparable](slice T) T {
 	case int:
 		fn = func(v E) bool { return any(v).(int) == 0 }
 	case bool:
-		fn = func(v E) bool { return any(v).(bool) == false }
+		fn = func(v E) bool { return !any(v).(bool) }
 	case int8:
 		fn = func(v E) bool { return any(v).(int8) == 0 }
 	case int16:

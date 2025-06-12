@@ -9,7 +9,7 @@ import (
 	"terraform-provider-postgresql/internal/helpers"
 )
 
-// queries
+// queries.
 const (
 	selectUserFunctionQuery = `
 	SELECT p.proname                           AS name,

@@ -52,7 +52,7 @@ func (p *pgClientImpl) GetConnection(ctx context.Context, targetDb ...string) (*
 
 	conn, err := pgx.Connect(ctx, connOpts.String())
 	if err != nil {
-		sanitizeErr := strings.Replace(err.Error(), connOpts.Password, "****", -1)
+		sanitizeErr := strings.ReplaceAll(err.Error(), connOpts.Password, "****")
 		return nil, fmt.Errorf("error connecting to database '%s'. Error: %s", connOpts.Database, sanitizeErr)
 	}
 

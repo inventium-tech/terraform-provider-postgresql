@@ -125,7 +125,7 @@ func ParseRawFunctionArgs(rawArgs string) ([]PgFunctionArgType, error) {
 // - "name type" (e.g. "myarg integer")
 // - "mode name type" (e.g. "OUT myarg integer")
 // - "name type DEFAULT value" (e.g. "myarg integer DEFAULT 42")
-// - "mode name type DEFAULT value" (e.g. "IN myarg integer DEFAULT 42")
+// - "mode name type DEFAULT value" (e.g. "IN myarg integer DEFAULT 42").
 func parseFunctionArgument(arg string) (PgFunctionArgType, error) {
 	argument := PgFunctionArgType{}
 

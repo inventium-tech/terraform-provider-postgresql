@@ -7,7 +7,7 @@ import (
 	"terraform-provider-postgresql/internal/helpers"
 )
 
-// queries
+// queries.
 const (
 	createEventTriggerQuery = `
 	CREATE EVENT TRIGGER %s

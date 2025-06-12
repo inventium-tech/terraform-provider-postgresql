@@ -15,15 +15,15 @@ type SanitationType int
 
 const (
 	// SanitizeIdentifier indicates that the input should be sanitized as a PostgreSQL identifier
-	// (e.g., table name, column name, function name).
+	// (e.g. table name, column name, function name).
 	SanitizeIdentifier SanitationType = iota
 
 	// SanitizeReturns indicates that the input should be sanitized as a PostgreSQL return type
-	// (e.g., integer, text[], etc.).
+	// (e.g. integer, text[], etc.).
 	SanitizeReturns
 )
 
-// DeferredRollback provides a safe way to roll back a transaction in case of errors
+// DeferredRollback provides a safe way to roll back a transaction in case of errors.
 func DeferredRollback(ctx context.Context, tx pgx.Tx) {
 	if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
 		tflog.Error(ctx, "Error rolling back transaction", map[string]interface{}{

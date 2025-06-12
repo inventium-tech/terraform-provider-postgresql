@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// Integration tests for RoleRepo
+// Integration tests for RoleRepo.
 func TestRoleRepo_Integration(t *testing.T) {
 	// Skip in short mode
 	if testing.Short() {
