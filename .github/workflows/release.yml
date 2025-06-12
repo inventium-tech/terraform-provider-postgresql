@@ -23,6 +23,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
+      - run: npm install -g conventional-changelog-conventionalcommits
       - name: Semantic Release (dry-run)
         run: npx semantic-release --dry-run
         env:
@@ -40,6 +41,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
+      - run: npm install -g conventional-changelog-conventionalcommits
       - name: Semantic Release
         run: npx semantic-release
         env:
