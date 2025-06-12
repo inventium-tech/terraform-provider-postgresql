@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, dev]
+    branches: [ main, dev ]
   pull_request:
-    branches: [main, dev]
+    branches: [ main, dev ]
   schedule:
     - cron: '0 0 * * 0'
   workflow_dispatch:
@@ -18,19 +18,22 @@ jobs:
     name: Go Build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Git Checkout
         uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-go
-      - run: go build -v ./...
+      - name: Setup Go
+        uses: ./.github/actions/setup-go
+      - name: Go Build
+        run: go build -v ./...
 
   lint:
     name: MegaLinter
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - uses: actions/checkout@v4
+      - name: Git Checkout
+        uses: actions/checkout@v4
       - name: MegaLinter
-        uses: oxsecurity/megalinter/flavors/go@v8.7.0
+        uses: oxsecurity/megalinter/flavors/go@v8
         id: ml
         env:
           VALIDATE_ALL_CODEBASE: true
@@ -45,50 +48,40 @@ jobs:
             .ml-reports/
             mega-linter.log
 
-  unit-test:
-    name: Go Unit Tests
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-go
-        with:
-          go-version: '1.24'
-      - run: go test ./... -v -coverprofile=unit-test.lcov -json > unit-test.log
-      - uses: actions/upload-artifact@v4
-        with:
-          name: unit-test-reports-${{ github.sha }}
-          path: |
-            unit-test.lcov
-            unit-test.log
-          retention-days: 7
-          overwrite: true
-
-  acceptance-test:
-    name: Go Acceptance Tests
+  tests:
+    name: Go All Tests
     runs-on: ubuntu-latest
     needs: build
     strategy:
       matrix:
-        tf-version: ['1.11.*', '1.12.*']
+        tf-version: [ '1.11.*', '1.12.*' ]
     steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-go
-        with:
-          go-version: '1.24'
-      - uses: hashicorp/setup-terraform@v3.1.1
+      - name: Git Checkout
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: ./.github/actions/setup-go
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ matrix.tf-version }}
           terraform_wrapper: false
-      - run: go test ./internal/provider -v -coverprofile=acc-test.lcov -json > acc-test.log
+      - name: Run Tests
+        run: go test ./internal/provider -v -coverprofile=tests-report.lcov -json > tests-report.log
         env:
           TF_ACC: '1'
-      - uses: actions/upload-artifact@v4
+      - name: Codecov Upload Coverage
+        uses: codecov/codecov-action@v4
         with:
-          name: acc-test-reports-${{ github.sha }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+          files: tests-report.lcov
+      - name: Upload Test Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-report-${{ github.sha }}
           path: |
-            acc-test.lcov
-            acc-test.log
+            tests-report.lcov
+            tests-report.log
           retention-days: 7
           overwrite: true
 
@@ -96,18 +89,18 @@ jobs:
     name: SonarCloud Scan
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    needs: [unit-test, acceptance-test]
+    needs: [ tests ]
     steps:
-      - uses: actions/checkout@v4
+      - name: Git Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@v4
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
         with:
-          name: unit-test-reports-${{ github.sha }}
-      - uses: actions/download-artifact@v4
-        with:
-          name: acc-test-reports-${{ github.sha }}
-      - uses: SonarSource/sonarqube-scan-action@v5.2.0
+          name: tests-report-${{ github.sha }}
+      - name: Sonarqube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
@@ -117,10 +110,13 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: build
     steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
+      - name: Git Checkout
+        uses: actions/checkout@v4
+      - name: CodeQL Analysis
+        uses: github/codeql-action/init@v3
         with:
           languages: go
-      - uses: github/codeql-action/analyze@v3
+      - name: CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
         with:
           category: '/language:go'
