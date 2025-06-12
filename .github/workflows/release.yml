@@ -23,8 +23,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
-      - run: npm clean-install
-      - run: npm audit signatures
       - name: Semantic Release (dry-run)
         run: npx semantic-release --dry-run
         env:
@@ -42,8 +40,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
-      - run: npm clean-install
-      - run: npm audit signatures
       - name: Semantic Release
         run: npx semantic-release
         env:
