@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// queries
+// queries.
 const (
 	existsDatabaseQuery = `
 	SELECT EXISTS (

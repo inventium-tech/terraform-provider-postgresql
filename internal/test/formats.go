@@ -16,7 +16,7 @@ type TfSingleValue interface {
 	types.String | types.Bool | types.Int32 | types.Int64 | types.Float64
 }
 
-// FormatTerraformAttribute converts a Terraform Framework attribute value to an HCL string representation
+// FormatTerraformAttribute converts a Terraform Framework attribute value to an HCL string representation.
 func FormatTerraformAttribute(t *testing.T, value attr.Value, fieldName string) string {
 	t.Helper()
 
@@ -37,7 +37,7 @@ func FormatTerraformAttribute(t *testing.T, value attr.Value, fieldName string) 
 func testFormatTerraformCollectionValues[T TfCollectionValues](t *testing.T, collection T) string {
 	t.Helper()
 
-	elements := make([]attr.Value, 0)
+	var elements []attr.Value
 	switch c := any(collection).(type) {
 	case types.List:
 		elements = c.Elements()

@@ -9,7 +9,7 @@ import (
 	"terraform-provider-postgresql/internal/helpers"
 )
 
-// queries
+// queries.
 const (
 	selectRoleQuery = `
 	SELECT r.rolname                                    AS name,

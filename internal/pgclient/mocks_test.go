@@ -12,15 +12,11 @@ import (
 )
 
 type (
-	// MockDB is a mock implementation of the DBTX interface for testing
+	// MockDB is a mock implementation of the DBTX interface for testing.
 	MockDB struct {
 		ExecFunc     func(ctx context.Context, sql string, args ...interface{}) (pgconn.CommandTag, error)
 		QueryFunc    func(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
 		QueryRowFunc func(ctx context.Context, sql string, args ...interface{}) pgx.Row
-	}
-	// MockRow is a mock implementation of pgx.Row for testing
-	MockRow struct {
-		ScanFunc func(dest ...interface{}) error
 	}
 )
 
@@ -34,15 +30,6 @@ func (m *MockDB) Query(ctx context.Context, sql string, args ...interface{}) (pg
 
 func (m *MockDB) QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row {
 	return m.QueryRowFunc(ctx, sql, args...)
-}
-
-func (m *MockRow) Scan(dest ...interface{}) error {
-	return m.ScanFunc(dest...)
-}
-
-func deferTestCloseConn(t *testing.T, conn *pgx.Conn) {
-	t.Helper()
-	assert.NoError(t, conn.Close(t.Context()))
 }
 
 func loadTestPostgresqlClient(t *testing.T, runOpts test.PostgresContainerRunOptions) PostgresqlClient {
