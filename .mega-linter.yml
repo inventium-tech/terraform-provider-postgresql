@@ -8,12 +8,13 @@ APPLY_FIXES: # all, none, or list of linter keys
   - YAML_YAMLLINT
 ENABLE_LINTERS: # If you use ENABLE_LINTERS variable, all other linters will be disabled by default
   - COPYPASTE_JSCPD             # https://megalinter.io/latest/descriptors/copypaste_jscpd/
-  - GO_GOLANGCI_LINT            # https://megalinter.io/latest/descriptors/go_golangci_lint/
   - JSON_PRETTIER               # https://megalinter.io/latest/descriptors/json_prettier/
   - MARKDOWN_MARKDOWNLINT       # https://megalinter.io/latest/descriptors/markdown_markdownlint/
   - REPOSITORY_CHECKOV          # https://megalinter.io/latest/descriptors/repository_checkov/
   - SPELL_CSPELL                # https://megalinter.io/latest/descriptors/spell_cspell/
   - YAML_YAMLLINT               # https://megalinter.io/latest/descriptors/yaml_yamllint/
+  # temporarily disabled until MegaLinter supports Go 1.24
+  # - GO_GOLANGCI_LINT            # https://megalinter.io/latest/descriptors/go_golangci_lint/
 SHOW_ELAPSED_TIME: true
 FILEIO_REPORTER: false
 LINTER_RULES_PATH: .linters
@@ -25,7 +26,6 @@ UPDATED_SOURCES_REPORTER: false
 EXCLUDED_DIRECTORIES:
   - .archived
   - docs
-  - examples
 
 # Add specific linters variables configuration
 # e.g. MARKDOWN_MARKDOWNLINT_CONFIG_FILE: .markdownlint.yml
