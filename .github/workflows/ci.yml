@@ -31,6 +31,7 @@ jobs:
     needs: build
     permissions:
       issues: write
+      pull-requests: write
     steps:
       - name: Git Checkout
         uses: actions/checkout@v4
