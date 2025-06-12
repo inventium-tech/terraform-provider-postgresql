@@ -87,5 +87,7 @@ func GetPostgresConnectionString(t *testing.T, container *postgres.PostgresConta
 		queryParams.Set("sslmode", "disable")
 	}
 
-	return connString + queryParams.Encode()
+	u.RawQuery = queryParams.Encode()
+
+	return u.String()
 }
