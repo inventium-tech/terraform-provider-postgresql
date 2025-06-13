@@ -1,11 +1,8 @@
 {
   "branches": [
     "main",
-    {
-      "name": "dev",
-      "channel": "pre-release",
-      "prerelease": "rc"
-    }
+    {"name": "dev", "channel": "pre-release", "prerelease": "rc"},
+    {"name": "ci/fix-semantic-release", "channel": "pre-release", "prerelease": "beta"}
   ],
   "tagFormat": "v${version}",
   "plugins": [
