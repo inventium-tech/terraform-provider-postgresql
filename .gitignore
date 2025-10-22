@@ -1,41 +1,23 @@
-*.dll
-*.exe
-.DS_Store
-example.tf
-terraform.tfplan
-terraform.tfstate
-bin/
-dist/
-modules-dev/
-/pkg/
-website/.vagrant
-website/.bundle
-website/build
-website/node_modules
-.vagrant/
-*.backup
-./*.tfstate
+## Terraform
 .terraform/
-*.log
-*.bak
-*~
-.*.swp
-.idea
-*.iml
-*.test
+*.tfstate*
 
-website/vendor
-
-# Test exclusions
+## Test exclusions
 !command/test-fixtures/**/*.tfstate
 !command/test-fixtures/**/.terraform/
 
 # Keep windows files with windows line endings
 *.winfile eol=crlf
 
-# IDEs
+## IDEs
 .idea/
 .vscode/
 
-# MegaLinter
+## MegaLinter
 .ml-reports/
+
+## env files
+*.env
+
+## Jetbrains AI Assistant
+.junie/
