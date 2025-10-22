@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -16,7 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"os"
 	"strconv"
-	"terraform-provider-postgresql/internal/client"
+	"terraform-provider-postgresql/internal/helpers"
+	"terraform-provider-postgresql/internal/pgclient"
 )
 
 const (
@@ -39,21 +39,26 @@ type PostgresqlProvider struct {
 	// version is set to the provider version on release, "dev" when the
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
-	version  string
-	pgClient client.PgClient //nolint:unused
+	version string
 }
 
-// PostgresqlProviderConfig describes the provider data model.
-type PostgresqlProviderConfig struct {
-	Host        types.String `tfsdk:"host" validate:"required"`
-	Port        types.Int64  `tfsdk:"port" validate:"required"`
-	Username    types.String `tfsdk:"username" validate:"required"`
-	Password    types.String `tfsdk:"password" validate:"required"`
-	Database    types.String `tfsdk:"database" validate:"required"`
-	Scheme      types.String `tfsdk:"scheme" validate:"required"`
-	SSLMode     types.String `tfsdk:"sslmode" validate:"required"`
-	MaxOpenConn types.Int64  `tfsdk:"max_open_conn" validate:"required"`
-	MaxIdleConn types.Int64  `tfsdk:"max_idle_conn" validate:"required"`
+// postgresqlProviderConfig describes the provider data model.
+type postgresqlProviderConfig struct {
+	Host     types.String `tfsdk:"host" validate:"required"`
+	Port     types.Int64  `tfsdk:"port" validate:"required"`
+	Username types.String `tfsdk:"username" validate:"required"`
+	Password types.String `tfsdk:"password" validate:"required"`
+	Database types.String `tfsdk:"database" validate:"required"`
+	Scheme   types.String `tfsdk:"scheme" validate:"required"`
+	SSLMode  types.String `tfsdk:"sslmode" validate:"required"`
+}
+
+func NewPostgresqlProvider(version string) func() provider.Provider {
+	return func() provider.Provider {
+		return &PostgresqlProvider{
+			version: version,
+		}
+	}
 }
 
 func (p *PostgresqlProvider) Metadata(_ context.Context, _ provider.MetadataRequest, res *provider.MetadataResponse) {
@@ -63,79 +68,67 @@ func (p *PostgresqlProvider) Metadata(_ context.Context, _ provider.MetadataRequ
 
 func (p *PostgresqlProvider) Schema(_ context.Context, _ provider.SchemaRequest, res *provider.SchemaResponse) {
 	res.Schema = schema.Schema{
+		Description: "The PostgreSQL Provider is used to manage PostgreSQL resources such as roles, databases, and event triggers.",
 		Attributes: map[string]schema.Attribute{
-			providerAttrHost: schema.StringAttribute{
-				MarkdownDescription: "The hostname of the PostgreSQL server. Default is 5432)",
-				Optional:            true,
+			"host": schema.StringAttribute{
+				Description: "The hostname of the PostgreSQL server. May be set via the environment variable `POSTGRES_HOST`.",
+				Optional:    true,
 			},
-			providerAttrPort: schema.Int64Attribute{
-				MarkdownDescription: "The port of the PostgreSQL server.",
-				Optional:            true,
+			"port": schema.Int64Attribute{
+				Description: "The port of the PostgreSQL server. May be set via the environment variable `POSTGRES_PORT`. (default: 5432)",
+				Optional:    true,
 				Validators: []validator.Int64{
 					int64validator.AtLeast(1),
 				},
 			},
-			providerAttrUsername: schema.StringAttribute{
-				MarkdownDescription: "The username to use when connecting to the PostgreSQL server.",
-				Optional:            true,
+			"username": schema.StringAttribute{
+				Description: "The username to use when connecting to the PostgreSQL server. May be set via the environment variable `POSTGRES_USERNAME`.",
+				Optional:    true,
 			},
-			providerAttrPassword: schema.StringAttribute{
-				MarkdownDescription: "The password to use when connecting to the PostgreSQL server.",
-				Optional:            true,
-				Sensitive:           true,
+			"password": schema.StringAttribute{
+				Description: "The password to use when connecting to the PostgreSQL server. May be set via the environment variable `POSTGRES_PASSWORD`.",
+				Optional:    true,
+				Sensitive:   true,
 			},
-			providerAttrDatabase: schema.StringAttribute{
-				MarkdownDescription: "The name of the PostgreSQL database to connect to.",
-				Optional:            true,
+			"database": schema.StringAttribute{
+				Description: "The name of the PostgreSQL database to connect to. May be set via the environment variable `POSTGRES_DATABASE`.",
+				Optional:    true,
 			},
-			providerAttrSchema: schema.StringAttribute{
+			"scheme": schema.StringAttribute{
 				Optional: true,
-				MarkdownDescription: `
-The schema to use when connecting to the PostgreSQL database. The value must be one of the following:
-	* 'postgres'
+				Description: `
+The scheme to use when connecting to the PostgreSQL database. The value must be one of the following:
+	* 'postgres' (default)
 	* 'gcppostgres'	
-	* 'awspostgres'	
-				`,
+	* 'awspostgres'
+May be set via the environment variable 'POSTGRES_SCHEME'. (default: 'postgres')
+                                `,
 				Validators: []validator.String{
 					stringvalidator.OneOf("postgres", "gcppostgres", "awspostgres"),
 				},
 			},
-			providerAttrSSLMode: schema.StringAttribute{
-				MarkdownDescription: `
+			"sslmode": schema.StringAttribute{
+				Description: `
 The SSL mode to use when connecting to the PostgreSQL server. The value must be one of the following:
 	* 'disable' (No SSL)
 	* 'require' (*default*. Always SSL, skip verification)
 	* 'verify-ca' (Always SSL, verify that the server certificate is issued by a trusted CA)
-	* 'verify-full' (Always SSL, *same as 'verify-ca', plus the server host name matches the one in the certificate)
+	* 'verify-full' (Always SSL, *same as 'verify-ca', plus the server host name matches the one in the certificate).
+May be set via the environment variable 'POSTGRES_SSLMODE'. (default: 'disable')
 				`,
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("disable", "require", "verify-ca", "verify-full"),
 				},
 			},
-			providerAttrMaxOpenConn: schema.Int64Attribute{
-				Optional:            true,
-				MarkdownDescription: "Maximum number of open connections to the database. Default is 0.",
-				Validators: []validator.Int64{
-					int64validator.AtLeast(0),
-				},
-			},
-			providerAttrMaxIdleConn: schema.Int64Attribute{
-				Optional:            true,
-				MarkdownDescription: "Maximum number of idle connections to the database. Default is 5.",
-				Validators: []validator.Int64{
-					int64validator.AtLeast(0),
-				},
-			},
 		},
-		MarkdownDescription: mdDocProviderOverview,
 	}
 }
 
 func (p *PostgresqlProvider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
 	tflog.Trace(ctx, "Configuring 'postgresql' Provider")
 
-	var providerConfig PostgresqlProviderConfig
+	var providerConfig postgresqlProviderConfig
 
 	res.Diagnostics.Append(req.Config.Get(ctx, &providerConfig)...)
 	if res.Diagnostics.HasError() {
@@ -148,7 +141,7 @@ func (p *PostgresqlProvider) Configure(ctx context.Context, req provider.Configu
 		return
 	}
 
-	validate := client.GetValidatorFromCtx(ctx)
+	validate := helpers.GetSafeValidator()
 	if err := validate.Struct(providerConfig); err != nil {
 		res.Diagnostics.AddError("Invalid provider configuration", err.Error())
 		return
@@ -159,13 +152,19 @@ func (p *PostgresqlProvider) Configure(ctx context.Context, req provider.Configu
 	ctx = tflog.SetField(ctx, providerAttrDatabase, providerConfig.Database.ValueString())
 
 	tflog.Trace(ctx, "Creating 'postgresql' client")
-	config, diags := providerConfig.toPgConnectionOpts(ctx)
-	res.Diagnostics.Append(diags...)
-	if res.Diagnostics.HasError() {
+	pgConnConfig := &pgclient.ConnConfig{
+		Host:     providerConfig.Host.ValueString(),
+		Port:     int(providerConfig.Port.ValueInt64()),
+		Username: providerConfig.Username.ValueString(),
+		Password: providerConfig.Password.ValueString(),
+		Database: providerConfig.Database.ValueString(),
+		SSLMode:  providerConfig.SSLMode.ValueString(),
+	}
+	pgClient, err := pgclient.NewPostgresqlClient(ctx, pgConnConfig)
+	if err != nil {
+		res.Diagnostics.AddError("Failed to create Postgres client", err.Error())
 		return
 	}
-
-	pgClient := client.NewPgClient(*config)
 	res.DataSourceData = pgClient
 	res.ResourceData = pgClient
 	tflog.Trace(ctx, "Successfully configured 'postgresql' Provider with the respective client")
@@ -173,119 +172,68 @@ func (p *PostgresqlProvider) Configure(ctx context.Context, req provider.Configu
 
 func (p *PostgresqlProvider) Resources(context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewEventTriggerResource,
+		NewPostgresqlEventTriggerResource,
+		NewPostgresqlRoleResource,
+		NewPostgresqlUserFunctionResource,
 	}
 }
 
 func (p *PostgresqlProvider) DataSources(context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewEventTriggerDataSource,
-	}
-}
-
-func NewProvider(version string) func() provider.Provider {
-	return func() provider.Provider {
-		return &PostgresqlProvider{
-			version: version,
-		}
+		NewPostgresqlEventTriggerDataSource,
 	}
 }
 
 // loadConfig loads the provider configuration from the given context.
-// Read and parse the expected environment variables to assign to the PostgresqlProviderConfig, but only if the
+// Read and parse the expected environment variables to assign to the postgresqlProviderConfig, but only if the
 // respective attribute is empty or not set.
 //
 // Returns:
 // - None.
-func (c *PostgresqlProviderConfig) loadConfig() diag.Diagnostics {
+func (c *postgresqlProviderConfig) loadConfig() diag.Diagnostics {
 	diags := diag.Diagnostics{}
 
-	if c.Host.IsNull() {
-		c.Host = types.StringValue(os.Getenv("POSTGRES_HOST"))
-	}
-	if c.Port.IsNull() {
-		portValue := types.Int64Value(int64(5432))
-		if value := os.Getenv("POSTGRES_PORT"); value != "" {
-			port, err := strconv.Atoi(value)
-			if err != nil {
-				diags.AddAttributeError(path.Root(providerAttrPort), "Failed to parse environment variable 'POSTGRES_PORT' to int", err.Error())
-			}
-			portValue = types.Int64Value(int64(port))
-		}
-		c.Port = portValue
-	}
-	if c.Username.IsNull() {
-		c.Username = types.StringValue(os.Getenv("POSTGRES_USER"))
-	}
-	if c.Password.IsNull() {
-		c.Password = types.StringValue(os.Getenv("POSTGRES_PASSWORD"))
-	}
-	if c.Database.IsNull() {
-		c.Database = types.StringValue(os.Getenv("POSTGRES_DATABASE"))
-	}
-	if c.Scheme.IsNull() {
-		schemeValue := types.StringValue("postgres")
-		if value := os.Getenv("POSTGRES_SCHEME"); value != "" {
-			schemeValue = types.StringValue(value)
-		}
-		c.Scheme = schemeValue
-	}
-	if c.SSLMode.IsNull() {
-		sslModeValue := types.StringValue("require") // default value
-		if value := os.Getenv("POSTGRES_SSLMODE"); value != "" {
-			sslModeValue = types.StringValue(value)
-		}
-		c.SSLMode = sslModeValue
+	var envVarValue string
+	var ok bool
+	var err error
+
+	if envVarValue, ok = os.LookupEnv("POSTGRES_HOST"); c.Host.IsNull() && ok {
+		c.Host = types.StringValue(envVarValue)
 	}
 
-	if c.MaxOpenConn.IsNull() {
-		defaultMaxOpenConn := types.Int64Value(int64(0))
-		if value := os.Getenv("POSTGRES_MAX_OPEN_CONN"); value != "" {
-			tflog.Info(context.Background(), fmt.Sprintf("\n\n\nPOSTGRES_MAX_OPEN_CONN: %s\n\n\n", value))
-			maxOpenConn, err := strconv.Atoi(value)
-			if err != nil {
-				diags.AddAttributeError(path.Root(providerAttrMaxOpenConn), "Failed to parse environment variable 'POSTGRES_MAX_OPEN_CONN' to int", err.Error())
-				return diags
-			}
-			defaultMaxOpenConn = types.Int64Value(int64(maxOpenConn))
+	portValue := 5432
+	if envVarValue, ok = os.LookupEnv("POSTGRES_PORT"); c.Port.IsNull() && ok {
+		portValue, err = strconv.Atoi(envVarValue)
+		if err != nil {
+			diags.AddAttributeError(path.Root(providerAttrPort), "failed to parse environment variable 'POSTGRES_PORT' to int", err.Error())
+			return diags
 		}
-		c.MaxOpenConn = defaultMaxOpenConn
+	}
+	c.Port = types.Int64Value(int64(portValue))
+
+	if envVarValue, ok = os.LookupEnv("POSTGRES_USER"); c.Username.IsNull() && ok {
+		c.Username = types.StringValue(envVarValue)
 	}
 
-	if c.MaxIdleConn.IsNull() {
-		defaultMaxIdleConn := types.Int64Value(int64(5))
-		if value := os.Getenv("POSTGRES_MAX_IDLE_CONN"); value != "" {
-			maxIdleConn, err := strconv.Atoi(value)
-			if err != nil {
-				diags.AddAttributeError(path.Root(providerAttrMaxIdleConn), "Failed to parse environment variable 'POSTGRES_MAX_IDLE_CONN' to int", err.Error())
-				return diags
-			}
-			defaultMaxIdleConn = types.Int64Value(int64(maxIdleConn))
-		}
-		c.MaxIdleConn = defaultMaxIdleConn
+	if envVarValue, ok = os.LookupEnv("POSTGRES_PASSWORD"); c.Password.IsNull() && ok {
+		c.Password = types.StringValue(envVarValue)
 	}
+
+	if envVarValue, ok = os.LookupEnv("POSTGRES_DATABASE"); c.Database.IsNull() && ok {
+		c.Database = types.StringValue(envVarValue)
+	}
+
+	schemeValue := "postgres"
+	if envVarValue, ok = os.LookupEnv("POSTGRES_SCHEME"); c.Scheme.IsNull() && ok {
+		schemeValue = envVarValue
+	}
+	c.Scheme = types.StringValue(schemeValue)
+
+	sslModeValue := "require"
+	if envVarValue, ok = os.LookupEnv("POSTGRES_SSLMODE"); c.SSLMode.IsNull() && ok {
+		sslModeValue = envVarValue
+	}
+	c.SSLMode = types.StringValue(sslModeValue)
 
 	return diags
-}
-
-func (c *PostgresqlProviderConfig) toPgConnectionOpts(ctx context.Context) (*client.PgConnectionOpts, diag.Diagnostics) {
-	diags := diag.Diagnostics{}
-	opts, err := client.NewPgConnectionOpts(
-		ctx,
-		client.WithHost(c.Host.ValueString()),
-		client.WithPort(int(c.Port.ValueInt64())),
-		client.WithUsername(c.Username.ValueString()),
-		client.WithPassword(c.Password.ValueString()),
-		client.WithDatabase(c.Database.ValueString()),
-		client.WithScheme(c.Scheme.ValueString()),
-		client.WithSSLMode(c.SSLMode.ValueString()),
-		client.WithMaxOpenConn(int(c.MaxOpenConn.ValueInt64())),
-		client.WithMaxIdleConn(int(c.MaxIdleConn.ValueInt64())),
-	)
-	if err != nil {
-		tflog.Debug(ctx, fmt.Sprintf("\n\n\nFailed to create Postgres client connection options. Error: %v\n\n\n", err))
-		diags.AddError("Failed to create Postgres client connection options", err.Error())
-	}
-
-	return opts, diags
 }

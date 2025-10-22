@@ -1,0 +1,40 @@
+---
+page_title: "{{.ProviderName | title}}"
+subcategory: ""
+description: |-
+  {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# PostgreSQL Provider
+
+{{ .Description | trimspace }}
+
+There are a few things that make this provider stand out:
+
+* It's built using the latest approach suggested by HashiCorp, using
+  the [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework).
+* Instead of replacing existing resources from other providers, we decided to start by covering the missing parts (e.g.
+  event triggers) and then expand to other resources.
+* Focused on best practices and security, the next short-term goal is to provide ephemeral resources and write-only
+  arguments while managing PostgreSQL roles/users.
+
+## Roadmap
+
+Here you can find a list of resources, data-sources and functions in our Roadmap with their current status:
+
+| Name          | Resource | Data Source |
+|---------------|:--------:|:-----------:|
+| Event Trigger |    ✅     |      ✅      |
+| Functions     |    ✅     |     🔜      |
+| Role          |    ✅     |     🔜      |
+| Database      |    🔜    |     🔜      |
+| Schema        |    🔜    |     🔜      |
+
+{{ if .HasExample -}}
+
+## Example Usage
+
+{{tffile .ExampleFile }}
+{{- end }}
+
+{{ .SchemaMarkdown }}
