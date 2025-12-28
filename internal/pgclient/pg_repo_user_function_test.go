@@ -325,9 +325,6 @@ func TestUserFunctionRepo_Integration(t *testing.T) {
 
 	// Cleanup
 	t.Cleanup(func() {
-		if err = pgConn.Close(t.Context()); err != nil {
-			t.Logf("failed to close connection: %s", err)
-		}
 	})
 
 	ctx := t.Context()

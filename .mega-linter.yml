@@ -6,6 +6,7 @@
 APPLY_FIXES: # all, none, or list of linter keys
   - JSON_PRETTIER
   - YAML_YAMLLINT
+  - MARKDOWN_MARKDOWNLINT
 ENABLE_LINTERS: # If you use ENABLE_LINTERS variable, all other linters will be disabled by default
   - COPYPASTE_JSCPD             # https://megalinter.io/latest/descriptors/copypaste_jscpd/
   - JSON_PRETTIER               # https://megalinter.io/latest/descriptors/json_prettier/
@@ -14,7 +15,8 @@ ENABLE_LINTERS: # If you use ENABLE_LINTERS variable, all other linters will be 
   - SPELL_CSPELL                # https://megalinter.io/latest/descriptors/spell_cspell/
   - YAML_YAMLLINT               # https://megalinter.io/latest/descriptors/yaml_yamllint/
   # temporarily disabled until MegaLinter supports Go 1.24
-  # - GO_GOLANGCI_LINT            # https://megalinter.io/latest/descriptors/go_golangci_lint/
+  - GO_GOLANGCI_LINT            # https://megalinter.io/latest/descriptors/go_golangci_lint/
+
 SHOW_ELAPSED_TIME: true
 FILEIO_REPORTER: false
 LINTER_RULES_PATH: .linters
@@ -23,15 +25,20 @@ FORMATTERS_DISABLE_ERRORS: false
 REPORT_OUTPUT_FOLDER: /tmp/lint/.ml-reports
 CONFIG_REPORTER: false # Activates/deactivates the config file to integrate with vscode
 UPDATED_SOURCES_REPORTER: false
+CLEAR_REPORT_FOLDER: true
 EXCLUDED_DIRECTORIES:
   - .archived
-  - docs
+  - docs # generated documentation
 
 # Add specific linters variables configuration
 # e.g. MARKDOWN_MARKDOWNLINT_CONFIG_FILE: .markdownlint.yml
 
+# SPELL_CSPELL variables
+SPELL_CSPELL_CONFIG_FILE: ".cspell.json"
+
 # MARKDOWN_MARKDOWNLINT variables
 MARKDOWN_MARKDOWNLINT_CONFIG_FILE: .markdownlint.yml
+MARKDOWN_MARKDOWNLINT_FILTER_REGEX_EXCLUDE: "(docs/|.archived/|.specs/.github/prompts/)*"
 
 # YAML_YAMLLINT variables
 YAML_YAMLLINT_CONFIG_FILE: .yamllint.yml

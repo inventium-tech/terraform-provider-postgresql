@@ -1,8 +1,7 @@
 {
   "branches": [
     "main",
-    {"name": "dev", "channel": "pre-release", "prerelease": "rc"}
-  ],
+    { "name": "dev", "channel": "pre-release", "prerelease": "rc" }],
   "tagFormat": "v${version}",
   "plugins": [
     [

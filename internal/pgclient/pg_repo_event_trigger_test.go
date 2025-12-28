@@ -108,9 +108,6 @@ func TestEventTriggerRepo_Integration(t *testing.T) {
 
 	// Clean-up database connection after test completion
 	t.Cleanup(func() {
-		if err = pgConn.Close(t.Context()); err != nil {
-			t.Logf("failed to close connection: %s", err)
-		}
 	})
 
 	ctx := t.Context()
