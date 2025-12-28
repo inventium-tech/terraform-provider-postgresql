@@ -2,6 +2,11 @@ package provider
 
 import (
 	"context"
+	"os"
+	"strconv"
+	"terraform-provider-postgresql/internal/helpers"
+	"terraform-provider-postgresql/internal/pgclient"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -13,10 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"os"
-	"strconv"
-	"terraform-provider-postgresql/internal/helpers"
-	"terraform-provider-postgresql/internal/pgclient"
 )
 
 const (
@@ -172,15 +173,20 @@ func (p *PostgresqlProvider) Configure(ctx context.Context, req provider.Configu
 
 func (p *PostgresqlProvider) Resources(context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		NewPostgresqlDatabaseResource,
 		NewPostgresqlEventTriggerResource,
 		NewPostgresqlRoleResource,
+		NewPostgresqlSchemaResource,
 		NewPostgresqlUserFunctionResource,
 	}
 }
 
 func (p *PostgresqlProvider) DataSources(context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		NewPostgresqlDatabaseDataSource,
 		NewPostgresqlEventTriggerDataSource,
+		NewPostgresqlSchemaDataSource,
+		NewPostgresqlSchemasDataSource,
 	}
 }
 

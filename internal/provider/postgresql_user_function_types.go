@@ -2,9 +2,10 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"strings"
 	"terraform-provider-postgresql/internal/helpers"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 type postgresqlUserFunctionModel struct {

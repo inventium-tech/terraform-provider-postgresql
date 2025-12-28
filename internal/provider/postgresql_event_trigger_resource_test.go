@@ -2,17 +2,18 @@ package provider
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+	"terraform-provider-postgresql/internal/helpers"
+	"terraform-provider-postgresql/internal/test"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
-	"strconv"
-	"strings"
-	"terraform-provider-postgresql/internal/helpers"
-	"terraform-provider-postgresql/internal/test"
-	"testing"
 )
 
 func TestAccPostgresqlEventTriggerResource(t *testing.T) {

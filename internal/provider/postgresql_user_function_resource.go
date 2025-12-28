@@ -3,6 +3,11 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
+	"terraform-provider-postgresql/internal/helpers"
+	"terraform-provider-postgresql/internal/pgclient"
+	"terraform-provider-postgresql/internal/provider/validators"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -16,10 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"strings"
-	"terraform-provider-postgresql/internal/helpers"
-	"terraform-provider-postgresql/internal/pgclient"
-	"terraform-provider-postgresql/internal/provider/validators"
 )
 
 var (
@@ -223,13 +224,13 @@ func (r *postgresqlUserFunctionResource) Create(ctx context.Context, req resourc
 		}
 	})
 
-	conn, err := r.pgClient.GetConnection(ctx, model.Database.ValueString())
+	pool, err := r.pgClient.GetPool(ctx, model.Database.ValueString())
 	if err != nil {
 		res.Diagnostics.AddError(msgErrGetPgConnection, err.Error())
 		return
 	}
 
-	tx, err := conn.Begin(ctx)
+	tx, err := pool.Begin(ctx)
 	if err != nil {
 		res.Diagnostics.AddError(msgErrStartPgTransaction, err.Error())
 		return
@@ -249,7 +250,7 @@ func (r *postgresqlUserFunctionResource) Create(ctx context.Context, req resourc
 		Comment:      model.Comment.ValueString(),
 	}
 
-	err = r.userFunctionRepo.Create(ctx, conn, params)
+	err = r.userFunctionRepo.Create(ctx, tx, params)
 	if err != nil {
 		res.Diagnostics.AddError(fmt.Sprintf(msgErrorExecutingPgAction, TFCreateAction, PGUserFunction), err.Error())
 		return
@@ -361,13 +362,13 @@ func (r *postgresqlUserFunctionResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	conn, err := r.pgClient.GetConnection(ctx, stateModel.Database.ValueString())
+	pool, err := r.pgClient.GetPool(ctx, stateModel.Database.ValueString())
 	if err != nil {
 		res.Diagnostics.AddError(msgErrGetPgConnection, err.Error())
 		return
 	}
 
-	tx, err := conn.Begin(ctx)
+	tx, err := pool.Begin(ctx)
 	if err != nil {
 		res.Diagnostics.AddError(msgErrStartPgTransaction, err.Error())
 		return

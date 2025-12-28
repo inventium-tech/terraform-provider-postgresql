@@ -18,6 +18,55 @@ There are a few things that make this provider stand out:
 * Focused on best practices and security, the next short-term goal is to provide ephemeral resources and write-only
   arguments while managing PostgreSQL roles/users.
 
+## Getting Started
+
+### Prerequisites
+- Terraform 1.0 or later
+- PostgreSQL 12 or later (recommended: PostgreSQL 14+)
+- PostgreSQL user with appropriate privileges for resource management
+
+### Quick Start
+
+1. **Configure the Provider**
+
+```terraform
+terraform {
+  required_providers {
+    postgresql = {
+      source  = "inventium-tech/postgresql"
+      version = "~> 1.0"
+    }
+  }
+}
+
+provider "postgresql" {
+  host     = "localhost"
+  port     = 5432
+  username = var.postgres_username
+  password = var.postgres_password  # Use variables for sensitive data
+  database = "postgres"
+  sslmode  = "require"              # Use SSL in production
+}
+```
+
+2. **Create Your First Resource**
+
+```terraform
+resource "postgresql_role" "app_user" {
+  name     = "my_app_user"
+  login    = true
+  password_wo = var.app_user_password
+}
+```
+
+3. **Apply Your Configuration**
+
+```bash
+terraform init
+terraform plan
+terraform apply
+```
+
 ## Roadmap
 
 Here you can find a list of resources, data-sources and functions in our Roadmap with their current status:
@@ -38,3 +87,156 @@ Here you can find a list of resources, data-sources and functions in our Roadmap
 {{- end }}
 
 {{ .SchemaMarkdown }}
+
+## Authentication
+
+The provider supports multiple authentication methods:
+
+### Environment Variables
+Set PostgreSQL connection details via environment variables:
+```bash
+export POSTGRES_HOST=localhost
+export POSTGRES_PORT=5432
+export POSTGRES_USERNAME=postgres
+export POSTGRES_PASSWORD=secure_password
+export POSTGRES_DATABASE=postgres
+export POSTGRES_SSLMODE=require
+```
+
+### Provider Configuration
+Specify connection details directly in the provider block (not recommended for sensitive data):
+```terraform
+provider "postgresql" {
+  host     = "localhost"
+  port     = 5432
+  username = "postgres"
+  password = var.postgres_password  # Use variables!
+  database = "postgres"
+  sslmode  = "require"
+}
+```
+
+### Cloud Provider Integration
+The provider supports special schemes for cloud-based PostgreSQL:
+- `gcppostgres` - Google Cloud SQL for PostgreSQL
+- `awspostgres` - Amazon RDS for PostgreSQL
+
+## Security Best Practices
+
+### Never Hardcode Credentials
+❌ **Bad:**
+```terraform
+provider "postgresql" {
+  password = "my-secret-password"
+}
+```
+
+✅ **Good:**
+```terraform
+variable "postgres_password" {
+  description = "PostgreSQL password"
+  type        = string
+  sensitive   = true
+}
+
+provider "postgresql" {
+  password = var.postgres_password
+}
+```
+
+### Use SSL/TLS
+Always enable SSL in production environments:
+```terraform
+provider "postgresql" {
+  sslmode = "verify-full"  # Most secure option
+}
+```
+
+Available SSL modes:
+- `disable` - No SSL (development only)
+- `require` - Always SSL, skip verification (default)
+- `verify-ca` - Always SSL, verify CA
+- `verify-full` - Always SSL, verify CA and hostname
+
+### Principle of Least Privilege
+- Create dedicated PostgreSQL users for Terraform with minimal required permissions
+- Avoid using superuser accounts for routine operations
+- Use separate credentials for different environments (dev, staging, prod)
+
+### Secure State Management
+- Store Terraform state in encrypted remote backends (S3, Terraform Cloud, etc.)
+- Never commit state files to version control
+- Enable state locking to prevent concurrent modifications
+- Regularly backup state files
+
+## Connection Schemes
+
+The provider supports different connection schemes for various PostgreSQL environments:
+
+| Scheme | Use Case | Example |
+|--------|----------|---------|
+| `postgres` (default) | Standard PostgreSQL | Self-hosted, on-premises |
+| `gcppostgres` | Google Cloud SQL | Cloud SQL instances |
+| `awspostgres` | Amazon RDS | RDS PostgreSQL instances |
+
+```terraform
+provider "postgresql" {
+  scheme = "awspostgres"  # For AWS RDS
+  # ... other configuration
+}
+```
+
+## Troubleshooting
+
+### Connection Issues
+**Problem**: Cannot connect to PostgreSQL server
+
+**Solutions**:
+- Verify PostgreSQL server is running: `pg_isready -h localhost`
+- Check firewall rules allow connections on the PostgreSQL port (default 5432)
+- Verify `pg_hba.conf` allows connections from your IP address
+- Test connection manually: `psql -h localhost -U postgres`
+
+### Authentication Failures
+**Problem**: Authentication failed for user
+
+**Solutions**:
+- Verify username and password are correct
+- Check PostgreSQL user exists: `\du` in psql
+- Review `pg_hba.conf` authentication method (md5, scram-sha-256, etc.)
+- Ensure password encryption method matches server configuration
+
+### SSL/TLS Errors
+**Problem**: SSL connection errors
+
+**Solutions**:
+- Verify SSL is enabled in `postgresql.conf`: `ssl = on`
+- Check SSL certificates are properly configured
+- Try different `sslmode` settings (start with `require`, then `verify-ca`)
+- Ensure certificate files are accessible and valid
+
+### Permission Errors
+**Problem**: Permission denied errors when creating resources
+
+**Solutions**:
+- Verify the PostgreSQL user has necessary privileges
+- Grant CREATE privileges: `GRANT CREATE ON DATABASE dbname TO username;`
+- For superuser operations, ensure user has SUPERUSER role
+- Check ownership and schema permissions
+
+### State Locking Issues
+**Problem**: State is locked by another process
+
+**Solutions**:
+- Wait for the other operation to complete
+- Verify no hung processes are holding locks
+- Force unlock (use cautiously): `terraform force-unlock <lock-id>`
+- Check backend configuration for locking support
+
+## Additional Resources
+
+- [Provider Source Code](https://github.com/inventium-tech/terraform-provider-postgresql)
+- [Issue Tracker](https://github.com/inventium-tech/terraform-provider-postgresql/issues)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework)
+- [Terraform Best Practices](https://developer.hashicorp.com/terraform/cloud-docs/recommended-practices)

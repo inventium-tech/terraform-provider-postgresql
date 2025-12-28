@@ -1,8 +1,9 @@
 package provider
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"terraform-provider-postgresql/internal/pgclient"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 type postgresqlRoleModel struct {

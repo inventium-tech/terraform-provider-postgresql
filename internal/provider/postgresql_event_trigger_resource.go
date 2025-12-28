@@ -3,6 +3,10 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
+	"terraform-provider-postgresql/internal/pgclient"
+	"terraform-provider-postgresql/internal/provider/validators"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -16,9 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/jackc/pgx/v5"
-	"strings"
-	"terraform-provider-postgresql/internal/pgclient"
-	"terraform-provider-postgresql/internal/provider/validators"
 )
 
 var (
@@ -169,13 +170,13 @@ func (r *resourceEventTrigger) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	conn, err := r.pgClient.GetConnection(ctx, model.Database.ValueString())
+	pool, err := r.pgClient.GetPool(ctx, model.Database.ValueString())
 	if err != nil {
 		res.Diagnostics.AddError(msgErrGetPgConnection, err.Error())
 		return
 	}
 
-	tx, err := conn.Begin(ctx)
+	tx, err := pool.Begin(ctx)
 	if err != nil {
 		res.Diagnostics.AddError(msgErrStartPgTransaction, err.Error())
 		return
@@ -234,13 +235,14 @@ func (r *resourceEventTrigger) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	conn, err := r.pgClient.GetConnection(ctx, dbName)
+	poolConn, err := r.pgClient.AcquireConn(ctx, dbName)
 	if err != nil {
 		res.Diagnostics.AddError(msgErrGetPgConnection, err.Error())
 		return
 	}
+	defer poolConn.Release()
 
-	diags := readEventTriggerFromDB(ctx, conn, r.eventTriggerRepo, eventName, &model)
+	diags := readEventTriggerFromDB(ctx, poolConn.Conn(), r.eventTriggerRepo, eventName, &model)
 	if diags.HasError() {
 		res.Diagnostics.Append(diags...)
 		return
@@ -264,14 +266,14 @@ func (r *resourceEventTrigger) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	var err error
-	var conn *pgx.Conn
 	var tx pgx.Tx
 
-	if conn, err = r.pgClient.GetConnection(ctx, stateModel.Database.ValueString()); err != nil {
+	pool, err := r.pgClient.GetPool(ctx, stateModel.Database.ValueString())
+	if err != nil {
 		res.Diagnostics.AddError(msgErrGetPgConnection, err.Error())
 		return
 	}
-	if tx, err = conn.Begin(ctx); err != nil {
+	if tx, err = pool.Begin(ctx); err != nil {
 		res.Diagnostics.AddError(msgErrStartPgTransaction, err.Error())
 		return
 	}

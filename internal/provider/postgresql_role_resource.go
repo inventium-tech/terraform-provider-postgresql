@@ -3,6 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
+	"terraform-provider-postgresql/internal/pgclient"
+	"terraform-provider-postgresql/internal/provider/validators"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -17,8 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"terraform-provider-postgresql/internal/pgclient"
-	"terraform-provider-postgresql/internal/provider/validators"
 )
 
 var (
@@ -210,13 +211,13 @@ func (r *postgresqlRoleResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	conn, err := r.pgClient.GetConnection(ctx)
+	pool, err := r.pgClient.GetPool(ctx)
 	if err != nil {
 		res.Diagnostics.AddError(msgErrGetPgConnection, err.Error())
 		return
 	}
 
-	tx, err := conn.Begin(ctx)
+	tx, err := pool.Begin(ctx)
 	if err != nil {
 		res.Diagnostics.AddError(msgErrStartPgTransaction, err.Error())
 		return
@@ -239,7 +240,7 @@ func (r *postgresqlRoleResource) Create(ctx context.Context, req resource.Create
 		Comment:         model.Comment.ValueString(),
 	}
 
-	err = r.roleRepo.Create(ctx, conn, params)
+	err = r.roleRepo.Create(ctx, tx, params)
 	if err != nil {
 		res.Diagnostics.AddError(fmt.Sprintf(msgErrorExecutingPgAction, TFCreateAction, PGRole), err.Error())
 		return
@@ -336,13 +337,13 @@ func (r *postgresqlRoleResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	conn, err := r.pgClient.GetConnection(ctx)
+	pool, err := r.pgClient.GetPool(ctx)
 	if err != nil {
 		res.Diagnostics.AddError(msgErrGetPgConnection, err.Error())
 		return
 	}
 
-	tx, err := conn.Begin(ctx)
+	tx, err := pool.Begin(ctx)
 	if err != nil {
 		res.Diagnostics.AddError(msgErrStartPgTransaction, err.Error())
 		return
@@ -353,7 +354,7 @@ func (r *postgresqlRoleResource) Update(ctx context.Context, req resource.Update
 	updateParams := planModel.buildPgRoleUpdateParams(&stateModel)
 	updateParams.Password = planPasswd.ValueStringPointer()
 
-	err = r.roleRepo.Update(ctx, conn, stateModel.Name.ValueString(), updateParams)
+	err = r.roleRepo.Update(ctx, tx, stateModel.Name.ValueString(), updateParams)
 	if err != nil {
 		res.Diagnostics.AddError(fmt.Sprintf(msgErrorExecutingPgAction, TFUpdateAction, PGRole), err.Error())
 		return

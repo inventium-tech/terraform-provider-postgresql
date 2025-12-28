@@ -8,6 +8,7 @@ const (
 	msgErrorExecutingPgAction     = "Error %s PostgreSQL '%s'."
 	msgErrorMissingResId          = "Missing resource ID in the request."
 	msgErrorParsingProviderData   = "Error parsing provider data."
+	msgErrInvalidProviderData     = "Invalid provider data."
 	msgErrorPgObjectNotFund       = "PostgreSQL object '%s' not found."
 	msgErrorPgObjectNotFundDetail = "The PostgreSQL '%s' with ID '%s' was not found in the current connection."
 )
@@ -26,6 +27,8 @@ const (
 	PGUserFunction PostgresqlObjectType = iota
 	PGRole
 	PGEventTrigger
+	PGDatabase
+	PGSchema
 )
 
 func (p PostgresqlObjectType) String() string {
@@ -36,6 +39,10 @@ func (p PostgresqlObjectType) String() string {
 		return "Role"
 	case PGEventTrigger:
 		return "Event Trigger"
+	case PGDatabase:
+		return "Database"
+	case PGSchema:
+		return "Schema"
 	default:
 		return "unknown"
 	}

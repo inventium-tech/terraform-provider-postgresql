@@ -2,12 +2,13 @@ package provider
 
 import (
 	"fmt"
+	"terraform-provider-postgresql/internal/pgclient"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"terraform-provider-postgresql/internal/pgclient"
-	"time"
 )
 
 type TerraformRequestObject interface {

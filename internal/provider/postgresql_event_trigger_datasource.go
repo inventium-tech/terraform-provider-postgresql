@@ -3,11 +3,12 @@ package provider
 import (
 	"context"
 	"fmt"
+	"terraform-provider-postgresql/internal/pgclient"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"terraform-provider-postgresql/internal/pgclient"
 )
 
 var (
@@ -98,13 +99,14 @@ func (d *datasourceEventTrigger) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	conn, err := d.pgClient.GetConnection(ctx, model.Database.ValueString())
+	poolConn, err := d.pgClient.AcquireConn(ctx, model.Database.ValueString())
 	if err != nil {
 		res.Diagnostics.AddError(msgErrGetPgConnection, err.Error())
 		return
 	}
+	defer poolConn.Release()
 
-	diags := readEventTriggerFromDB(ctx, conn, d.eventTriggerRepo, model.Name.ValueString(), &model)
+	diags := readEventTriggerFromDB(ctx, poolConn.Conn(), d.eventTriggerRepo, model.Name.ValueString(), &model)
 	if diags.HasError() {
 		res.Diagnostics.Append(diags...)
 		return
