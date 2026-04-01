@@ -2,14 +2,15 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"strconv"
 	"strings"
 	"terraform-provider-postgresql/internal/helpers"
 	"terraform-provider-postgresql/internal/test"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
 func TestAccPostgresqlUserFunctionResource(t *testing.T) {

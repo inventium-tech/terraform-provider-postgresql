@@ -3,13 +3,14 @@ package provider
 import (
 	"context"
 	"fmt"
+	"terraform-provider-postgresql/internal/helpers"
+	"terraform-provider-postgresql/internal/pgclient"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"terraform-provider-postgresql/internal/helpers"
-	"terraform-provider-postgresql/internal/pgclient"
 )
 
 type resourceModelEventTrigger struct {

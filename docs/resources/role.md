@@ -12,16 +12,23 @@ Creates a Postgresql role. [Postgresql documentation](https://www.postgresql.org
 ## Example Usage
 
 ```terraform
-ephemeral "random_password" "db_password" {
+# Example: PostgreSQL Roles
+#
+# This example demonstrates creating various types of PostgreSQL roles
+# with different permissions and security best practices.
+
+# Generate a secure random password using ephemeral resource
+ephemeral "random_password" "app_user_password" {
   length  = 64
   lower   = true
   upper   = true
   numeric = true
-  special = false
+  special = false # Avoid special characters for compatibility
 }
 
-resource "postgresql_role" "john_doe" {
-  name        = "john_doe"
+# Application user role with login capability
+resource "postgresql_role" "app_user" {
+  name        = "app_user"
   login       = true
   superuser   = false
   inherit     = true
@@ -29,10 +36,83 @@ resource "postgresql_role" "john_doe" {
   createrole  = false
   replication = false
 
-  password_wo         = random_password.db_password.result
+  # Use ephemeral password - never hardcoded
+  password_wo         = random_password.app_user_password.result
   password_wo_version = 1
 
-  comment = "A role for John Doe"
+  comment = "Application database user"
+}
+
+# Read-only role for reporting
+resource "postgresql_role" "readonly_user" {
+  name        = "readonly_user"
+  login       = true
+  superuser   = false
+  inherit     = true
+  createdb    = false
+  createrole  = false
+  replication = false
+
+  password_wo         = random_password.readonly_password.result
+  password_wo_version = 1
+
+  comment = "Read-only user for reporting and analytics"
+}
+
+ephemeral "random_password" "readonly_password" {
+  length  = 64
+  lower   = true
+  upper   = true
+  numeric = true
+  special = false
+}
+
+# Group role (no login) for permission management
+resource "postgresql_role" "developers" {
+  name        = "developers"
+  login       = false # Group role
+  superuser   = false
+  inherit     = true
+  createdb    = true # Developers can create databases
+  createrole  = false
+  replication = false
+
+  comment = "Developer group role"
+}
+
+# Replication user
+resource "postgresql_role" "replication_user" {
+  name        = "replication_user"
+  login       = true
+  superuser   = false
+  inherit     = true
+  createdb    = false
+  createrole  = false
+  replication = true # Can perform replication
+
+  password_wo         = random_password.replication_password.result
+  password_wo_version = 1
+
+  comment = "Replication user for standby servers"
+}
+
+ephemeral "random_password" "replication_password" {
+  length  = 64
+  lower   = true
+  upper   = true
+  numeric = true
+  special = false
+}
+
+# Output role names (not passwords!)
+output "role_names" {
+  value = {
+    app_user         = postgresql_role.app_user.name
+    readonly_user    = postgresql_role.readonly_user.name
+    developers       = postgresql_role.developers.name
+    replication_user = postgresql_role.replication_user.name
+  }
+  description = "Created role names"
 }
 ```
 
@@ -47,16 +127,19 @@ resource "postgresql_role" "john_doe" {
 
 > **NOTE**: [Write-only arguments](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments) are supported in Terraform 1.11 and later.
 
+- `admin` (Set of String) Roles this role can administer (membership with admin option).
 - `bypass_rls` (Boolean) Determines whether the role bypasses every row-level security (RLS) policy. Default is `false`.
 - `comment` (String) Comment associated with the role
 - `connection_limit` (Number) The maximum number of concurrent connections the role can make. -1 means no limit. Default is `-1`.
 - `create_db` (Boolean) Determines whether the role can create new databases. Default is `false`.
 - `create_role` (Boolean) Determines whether the role can create new roles. Default is `false`.
+- `in_role` (Set of String) Roles to grant membership during creation (one-time). Changes force recreation.
 - `inherit` (Boolean) Determines whether the role inherits the privileges of roles it is a member of. Default is `true`.
 - `login` (Boolean) Determines whether the role can log in. Default is `false`.
 - `password_wo` (String, Sensitive, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) The password of the Postgresql role. This is a write-only attribute.
 - `password_wo_version` (Number) Increment this value to force a password update.
 - `replication` (Boolean) Determines whether the role can initiate streaming replication or put the system in and out of backup mode. Default is `false`.
+- `role` (Set of String) Roles this role belongs to (membership without admin option).
 - `superuser` (Boolean) Determines whether the role is a superuser who can override all access restrictions within the database. Default is `false`.
 - `valid_until` (String) The date and time after which the role's password is no longer valid. Default is 'infinity'.
 
@@ -71,5 +154,5 @@ resource "postgresql_role" "john_doe" {
 
 ```terraform
 # Postgresql Role can be imported by specifying the id with the format <role_name>
-terraform import postgresql_role.john_doe "john_doe"
+terraform import postgresql_role.jhon_doe "john_doe"
 ```

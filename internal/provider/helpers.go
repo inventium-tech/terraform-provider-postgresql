@@ -1,13 +1,15 @@
 package provider
 
 import (
+	"context"
 	"fmt"
+	"terraform-provider-postgresql/internal/pgclient"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"terraform-provider-postgresql/internal/pgclient"
-	"time"
 )
 
 type TerraformRequestObject interface {
@@ -44,4 +46,27 @@ func parsePgClientFromRequest[R datasource.ConfigureRequest | resource.Configure
 
 func setLastUpdatedFieldValue(destVal *types.String) {
 	*destVal = types.StringValue(time.Now().Format(time.RFC3339))
+}
+
+func parseSetIntoSlice[T comparable](ctx context.Context, target *[]T, value types.Set) diag.Diagnostics {
+	if value.IsNull() || value.IsUnknown() {
+		return nil
+	}
+
+	return value.ElementsAs(ctx, target, false)
+}
+
+func parseSliceIntoStringSet[T comparable](ctx context.Context, target *types.Set, values []T) diag.Diagnostics {
+	if values == nil {
+		*target = types.SetNull(types.StringType)
+		return nil
+	}
+
+	val, diags := types.SetValueFrom(ctx, types.StringType, values)
+	if diags.HasError() {
+		return diags
+	}
+
+	*target = val
+	return diags
 }

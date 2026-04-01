@@ -1,58 +1,75 @@
-<p align="center">
-  <img src="./assets/provider_logo.svg" width="200" alt="logo"/>
-</p>
+# Terraform Provider for PostgreSQL
 
----
+Terraform provider for managing PostgreSQL objects with the Terraform Plugin Framework.
 
-![Golang](https://img.shields.io/badge/-Golang-black?style=for-the-badge&logoColor=white&logo=go&color=00ADD8)
-![Postgres](https://img.shields.io/badge/-PostgreSQL-black?style=for-the-badge&logoColor=white&logo=postgresql&color=4169E1)
-![Terraform](https://img.shields.io/badge/-Terraform-black?style=for-the-badge&logoColor=white&logo=terraform&color=844FBA)
+## What it does
 
-[![🛠️ Build Workflow](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/build.yml/badge.svg)](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/build.yml)
-[![🔎 MegaLinter](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/mega-linter.yml/badge.svg)](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/mega-linter.yml)
-[![❇️ CodeQL](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/codeql.yml/badge.svg)](https://github.com/inventium-tech/terraform-provider-postgresql/actions/workflows/codeql.yml)
+- Manages PostgreSQL resources such as roles, databases, schemas, extensions, grants, user functions, and event triggers.
+- Exposes data sources to read database, schema(s), role, extension, and event trigger metadata.
+- Supports local development/testing workflows for provider contributors.
 
-![GitHub language count](https://img.shields.io/github/languages/count/inventium-tech/terraform-provider-postgresql)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/inventium-tech/terraform-provider-postgresql/go.yml?branch=main&logo=githubactions&logoColor=white&logoSize=5)
-![GitHub License](https://img.shields.io/github/license/inventium-tech/terraform-provider-postgresql)
+## Quick start (local development)
 
-<h2>📋 Table of Contents</h2>
+1. Build the provider:
 
-<!-- TOC -->
-* [🐘 Terraform Provider for PostgreSQL](#-terraform-provider-for-postgresql)
-  * [❗ READ BEFORE USE](#-read-before-use)
-  * [🏁 Roadmap](#-roadmap)
-<!-- TOC -->
+   ```bash
+   go build -o terraform-provider-postgresql
+   ```
 
-# 🐘 Terraform Provider for PostgreSQL
+2. Point Terraform to the local binary via `~/.terraformrc`:
 
-Yet another Terraform provider for PostgreSQL. This one is built using the latest and suggested practices for
-Terraform providers. That means it is built using the
-[Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework).
+   ```hcl
+   provider_installation {
+     dev_overrides {
+       "inventium-tech/postgresql" = "/path/to/terraform-provider-postgresql"
+     }
+     direct {}
+   }
+   ```
 
-## ❗ READ BEFORE USE
+3. Configure the provider in Terraform:
 
-* This provider is still in development and has a limited support for PostgreSQL resources.
-* Check the [🏁 Roadmap](#-roadmap) for the list of supported resources.
+   ```hcl
+   terraform {
+     required_providers {
+       postgresql = {
+         source = "inventium-tech/postgresql"
+       }
+     }
+   }
 
-## 🏁 Roadmap
+   provider "postgresql" {
+     host     = "localhost"
+     port     = 5432
+     username = "postgres"
+     password = var.postgres_password
+     database = "postgres"
+     sslmode  = "require"
+   }
+   ```
 
-Here you can find a status of the resources that are supported by the provider.
+4. Initialize Terraform in your test configuration directory:
 
-_status:_
+   ```bash
+   terraform init
+   ```
 
-* ✅ Supported
-* 🔜 Coming Soon
+Expected result: `terraform init` completes successfully and uses the local `inventium-tech/postgresql` provider override.
 
-| Name          | Resource | Data Source | Write-Only Attr | Ephemeral Resource |
-|---------------|:--------:|:-----------:|:---------------:|--------------------|
-| Event Trigger |    ✅     |      ✅      |                 |                    |
-| Functions     |    ✅     |     🔜      |                 |                    |
-| Role          |    ✅     |     🔜      |        ✅        |                    |
-| Database      |    🔜    |     🔜      |                 |                    |
-| Schema        |    🔜    |     🔜      |                 |                    |
+## Status and support
 
-<a href="https://www.buymeacoffee.com/refucktor" target="_blank">
-  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee"
-    style="height: 60px !important;width: 217px !important;">
-</a>
+This provider is under active development. The current codebase registers these resource types:
+`postgresql_database`, `postgresql_event_trigger`, `postgresql_extension`, `postgresql_grant`,
+`postgresql_role`, `postgresql_schema`, `postgresql_user_function`; and these data sources:
+`postgresql_database`, `postgresql_event_trigger`, `postgresql_extension`, `postgresql_role`,
+`postgresql_schema`, `postgresql_schemas`.
+
+## Project documentation
+
+- [README.md](README.md)
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [AGENTS.md](AGENTS.md)
+- [LICENSE](LICENSE)
+- [Generated provider docs index](docs/index.md)
+- [Examples index](examples/README.md)

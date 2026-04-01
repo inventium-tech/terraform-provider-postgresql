@@ -2,17 +2,18 @@ package test
 
 import (
 	"context"
-	"github.com/stretchr/testify/assert"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"net/url"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
 const (
-	testPGDefaultImage    = "postgres:16-alpine"
+	testPGDefaultImage    = "postgres:17-alpine"
 	testPGDefaultDb       = "test_tf_provider"
 	testPGDefaultUsername = "tester"
 	testPGDefaultPassword = "tester"
