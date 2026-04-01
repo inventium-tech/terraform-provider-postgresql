@@ -1,6 +1,7 @@
 # Contributing to Terraform Provider for PostgreSQL
 
-Thank you for your interest in contributing to this project! We welcome contributions that improve the provider, fix bugs, add features, or enhance documentation.
+Thank you for your interest in contributing to this project. We welcome improvements to provider behavior, tests,
+architecture, and documentation.
 
 ## Table of Contents
 
@@ -8,34 +9,16 @@ Thank you for your interest in contributing to this project! We welcome contribu
 - [Development Environment Setup](#development-environment-setup)
 - [Coding Standards](#coding-standards)
 - [Testing](#testing)
-- [Contribution Process](#contribution-process)
+- [Branching Conventions](#branching-conventions)
+- [PR / MR Process](#pr--mr-process)
 - [Bug Reporting](#bug-reporting)
 - [Commit Message Format](#commit-message-format)
+- [Proposing Design Changes](#proposing-design-changes)
+- [Code of Conduct](#code-of-conduct)
 
 ## Directory Structure
 
-The project follows a standard Go project layout:
-
-```text
-terraform-provider-postgresql/
-├── .github/               # GitHub workflows and instructions
-│   ├── instructions/      # Language-specific coding instructions
-│   └── workflows/         # CI/CD workflows
-├── assets/                # Project assets (logos, images)
-├── docs/                  # Terraform provider documentation
-│   ├── data-sources/      # Data source documentation
-│   └── resources/         # Resource documentation
-├── examples/              # Example Terraform configurations
-├── internal/              # Internal packages (not importable)
-│   ├── client/           # Deprecated PostgreSQL client (legacy)
-│   ├── helpers/          # Generic helper functions
-│   ├── pgclient/         # Current PostgreSQL client implementation
-│   ├── provider/         # Provider implementation (resources, data sources)
-│   │   └── validators/   # Custom validators
-│   └── test/             # Test helpers and utilities
-├── templates/             # Markdown templates for doc generation
-└── tools/                 # Development tools and utilities
-```
+See ARCHITECTURE.md: "Repository Structure"
 
 ## Development Environment Setup
 
@@ -106,14 +89,12 @@ This project follows idiomatic Go practices and Terraform Plugin Framework conve
 - Use `gofmt` and `goimports` for code formatting
 - Write clear, self-documenting code with meaningful variable names
 - Add comments for complex logic, focusing on "why" not "what"
-- Handle errors explicitly; never ignore errors without good reason
+- Handle errors explicitly; never ignore errors without a good reason
 - Keep functions small and focused on a single responsibility
 
 ### Architecture Principles
 
-- **Domain-Driven Design (DDD)**: Create rich domain models for PostgreSQL objects
-- **Clean Architecture**: Separate concerns into distinct layers (entities, use cases, interfaces)
-- **Repository Pattern**: Database operations are encapsulated in the `pgclient` package
+See ARCHITECTURE.md: "Architectural Style"
 
 ### Code Review Checklist
 
@@ -138,7 +119,9 @@ go test ./... -v
 
 ### Acceptance Tests
 
-Acceptance tests verify the provider works with a real PostgreSQL instance. They use [terraform-plugin-testing](https://github.com/hashicorp/terraform-plugin-testing) and [testcontainers-go](https://github.com/testcontainers/testcontainers-go).
+Acceptance tests verify the provider works with a real PostgreSQL instance. They
+use [terraform-plugin-testing](https://github.com/hashicorp/terraform-plugin-testing)
+and [testcontainers-go](https://github.com/testcontainers/testcontainers-go).
 
 Run acceptance tests with:
 
@@ -168,46 +151,33 @@ The project uses CodeCov for tracking test coverage. Aim for:
 - 100% coverage for domain logic in `pgclient`
 - Reasonable coverage for provider resources
 
-## Contribution Process
+## Branching Conventions
 
-### Reporting Issues
+Create a branch using one of the standard prefixes:
 
-1. Check existing issues to avoid duplicates
-2. Use issue templates when available
-3. Provide clear reproduction steps
-4. Include relevant logs and error messages
-5. Specify your environment (Go version, Terraform version, PostgreSQL version)
+| Prefix     | Purpose                                                  |
+|------------|----------------------------------------------------------|
+| `feature/` | Introduce a new feature                                  |
+| `fix/`     | Fix or patch an existing bug                             |
+| `docs/`    | Documentation-only changes                               |
+| `perf/`    | Performance improvements                                 |
+| `ci/`      | CI/CD workflow or automation changes                     |
+| `chore/`   | Refactors, maintenance, or other non-user-facing changes |
 
-### Submitting Pull Requests
+Examples: `feature/role-inheritance`, `fix/event-trigger-validation`, `docs/quickstart`.
 
-1. **Fork the repository** and create a feature branch:
+## PR / MR Process
 
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-2. **Make your changes** following the coding standards
-
-3. **Add tests** for new functionality
-
-4. **Update documentation** if needed:
-   - Update relevant files in `docs/`
-   - Update examples in `examples/`
-   - Regenerate docs with: `go generate ./...`
-
-5. **Commit your changes** following the commit message format
-
-6. **Push to your fork** and create a pull request
-
-7. **Respond to feedback** from maintainers during code review
-
-### Pull Request Guidelines
-
-- Keep PRs focused on a single feature or fix
-- Write clear PR descriptions explaining the change
-- Link related issues in the PR description
-- Ensure CI checks pass
-- Be responsive to review comments
+1. Pull the latest changes from your **target branch** and branch from it before starting work.
+2. Create a branch that follows [Branching Conventions](#branching-conventions).
+3. Make your changes and add/adjust tests as needed.
+4. If docs need updates, edit `templates/` and code comments first, then regenerate docs with `go generate ./...` (do
+   not edit generated `docs/` directly).
+5. Ensure each commit and the PR/MR title comply with [Commit Message Format](#commit-message-format).
+6. Open the PR/MR with clear context, linked issue(s), and test evidence.
+7. Assign a reviewer/maintainer.
+8. Ensure the pipeline passes before marking the PR/MR ready for review or merge.
+9. Address reviewer feedback promptly.
 
 ## Bug Reporting
 
@@ -218,52 +188,74 @@ When reporting bugs, please include:
 - **Expected Behavior**: What you expected to happen
 - **Actual Behavior**: What actually happened
 - **Environment**:
-  - Go version (`go version`)
-  - Terraform version (`terraform version`)
-  - PostgreSQL version
-  - Operating system
+    - Go version (`go version`)
+    - Terraform version (`terraform version`)
+    - PostgreSQL version
+    - Operating system
 - **Logs**: Relevant error messages or logs
 - **Configuration**: Minimal Terraform configuration reproducing the issue
 
 ## Commit Message Format
 
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
+We follow
+the [ESLint Conventions](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-eslint)
+commit style. Commit history is consumed by [Semantic Release](https://semantic-release.gitbook.io/semantic-release/) to
+drive automated versioning and release notes.
+
+Every commit must use this structure:
 
 ```text
-<type>(<scope>): <subject>
+Tag: short description
 
-<body>
+Longer description here if necessary.
 
-<footer>
+---
+[OPTIONAL]
+Closes #123
 ```
 
-### Types
+| Tag      | Description                         |
+|----------|-------------------------------------|
+| Breaking | Backwards-incompatible change       |
+| Feature  | New functionality                   |
+| Fix      | Bug fix                             |
+| Docs     | Documentation-only change           |
+| Chore    | Maintenance or non-user-facing work |
+| Perf     | Performance improvement             |
+| CI       | CI/CD pipeline or automation update |
 
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, etc.)
-- `refactor`: Code refactoring
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks
-
-### Examples
+Examples:
 
 ```text
-feat(role): add support for REPLICATION attribute
+Feature: add REPLICATION role attribute support
 
-Implement support for the REPLICATION role attribute, allowing
-creation of roles with replication privileges.
+Implements REPLICATION handling for role resources and updates acceptance coverage.
 
+---
 Closes #123
 ```
 
 ```text
-fix(event_trigger): correct filter validation logic
+Fix: correct event trigger filter validation
 
-Fixed validation logic that incorrectly rejected valid filter
-configurations with multiple event types.
+Rejects only invalid filter combinations and allows valid multi-event configurations.
 ```
+
+## Proposing Design Changes
+
+For changes that affect architecture, resource/data source behavior, or provider contracts:
+
+1. Open an issue describing the problem, motivation, and proposed approach.
+2. Reference relevant architecture context (see ARCHITECTURE.md) and any considered alternatives.
+3. Align with maintainers before implementing broad-impact changes.
+4. Open a PR referencing the issue once the approach is agreed.
+
+## Code of Conduct
+
+Contributors are expected to collaborate respectfully and professionally. This project follows the
+[Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/) as its baseline code of
+conduct. If you experience unacceptable behavior, open a private report with maintainers through the repository
+maintainership channel.
 
 ## Questions?
 
