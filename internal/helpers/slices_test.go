@@ -119,3 +119,77 @@ func TestSliceMap(t *testing.T) {
 		assert.Nil(t, result)
 	})
 }
+
+func TestSliceDifference(t *testing.T) {
+	t.Run("basic difference", func(t *testing.T) {
+		// Test finding elements in a that are not in b
+		a := []string{"a", "b", "c", "d"}
+		b := []string{"b", "d"}
+		expected := []string{"a", "c"}
+		result := SliceDifference(a, b)
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("no difference", func(t *testing.T) {
+		// Test when all elements of a are in b
+		a := []string{"a", "b"}
+		b := []string{"a", "b", "c"}
+		var expected []string
+		result := SliceDifference(a, b)
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("empty slices", func(t *testing.T) {
+		// Test with empty slices
+		var a, b []string
+		var expected []string
+		result := SliceDifference(a, b)
+		assert.Equal(t, expected, result)
+	})
+}
+
+func TestSliceIntersection(t *testing.T) {
+	t.Run("basic intersection", func(t *testing.T) {
+		// Test finding common elements between two slices
+		a := []string{"a", "b", "c", "d"}
+		b := []string{"b", "d", "e"}
+		expected := []string{"b", "d"}
+		result := SliceIntersection(a, b)
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("no intersection", func(t *testing.T) {
+		// Test when slices have no common elements
+		a := []string{"a", "b"}
+		b := []string{"c", "d"}
+		var expected []string
+		result := SliceIntersection(a, b)
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("full intersection", func(t *testing.T) {
+		// Test when all elements are common
+		a := []string{"a", "b", "c"}
+		b := []string{"a", "b", "c"}
+		expected := []string{"a", "b", "c"}
+		result := SliceIntersection(a, b)
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("empty slices", func(t *testing.T) {
+		// Test with empty slices
+		var a, b []string
+		var expected []string
+		result := SliceIntersection(a, b)
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("role membership validation case", func(t *testing.T) {
+		// Test the actual use case: detecting overlapping role memberships
+		roles := []string{"reader", "writer", "admin"}
+		adminRoles := []string{"admin", "superuser"}
+		expected := []string{"admin"}
+		result := SliceIntersection(roles, adminRoles)
+		assert.Equal(t, expected, result)
+	})
+}

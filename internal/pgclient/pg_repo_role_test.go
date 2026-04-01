@@ -1,10 +1,91 @@
 package pgclient
 
 import (
-	"github.com/stretchr/testify/assert"
-	"terraform-provider-postgresql/internal/test"
 	"testing"
+
+	"terraform-provider-postgresql/internal/test"
+
+	"github.com/stretchr/testify/assert"
 )
+
+// TestBuildDesiredMembershipMap is a pure unit test — no database required.
+// It specifically covers the regression where in_role memberships were being
+// accidentally revoked during an Update when role or admin changed, because
+// they were not included in the desired membership map passed to syncMembership.
+func TestBuildDesiredMembershipMap(t *testing.T) {
+	tests := []struct {
+		name       string
+		roles      []string
+		adminRoles []string
+		want       map[string]bool
+		wantErr    bool
+	}{
+		{
+			name:       "nil inputs returns empty map",
+			roles:      nil,
+			adminRoles: nil,
+			want:       map[string]bool{},
+		},
+		{
+			name:  "roles only",
+			roles: []string{"parent_role", "member_role"},
+			want:  map[string]bool{"parent_role": false, "member_role": false},
+		},
+		{
+			name:       "admin roles only",
+			adminRoles: []string{"admin_role"},
+			want:       map[string]bool{"admin_role": true},
+		},
+		{
+			name:       "roles and admin roles combined",
+			roles:      []string{"member_role"},
+			adminRoles: []string{"admin_role"},
+			want:       map[string]bool{"member_role": false, "admin_role": true},
+		},
+		{
+			// Regression: when the Terraform Update handler includes in_role entries
+			// alongside plan roles, buildDesiredMembershipMap must retain them so that
+			// syncMembership does NOT revoke them.
+			name:       "in_role entries preserved when merged with plan roles",
+			roles:      []string{"plan_role", "in_role_parent"},
+			adminRoles: []string{"admin_role"},
+			want: map[string]bool{
+				"plan_role":      false,
+				"in_role_parent": false, // must survive — was previously wiped on update
+				"admin_role":     true,
+			},
+		},
+		{
+			name:  "empty string roles are skipped",
+			roles: []string{"", "valid_role"},
+			want:  map[string]bool{"valid_role": false},
+		},
+		{
+			name:       "admin wins over role when same name in both",
+			roles:      []string{"shared_role"},
+			adminRoles: []string{"shared_role"},
+			// adminRoles is processed last, so it overwrites the non-admin entry.
+			want: map[string]bool{"shared_role": true},
+		},
+		{
+			name:    "invalid role name returns error",
+			roles:   []string{"invalid name with spaces"},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := buildDesiredMembershipMap(tt.roles, tt.adminRoles)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
 
 // Integration tests for RoleRepo.
 func TestRoleRepo_Integration(t *testing.T) {
@@ -28,12 +109,22 @@ func TestRoleRepo_Integration(t *testing.T) {
 	pgConn, err := pgClient.GetConnection(t.Context())
 	assert.NoError(t, err)
 
-	// Cleanup
-	t.Cleanup(func() {
-	})
-
 	ctx := t.Context()
 	repo := NewRoleRepo()
+
+	baseRoles := []string{"parent_role", "admin_role", "member_role"}
+
+	for _, roleName := range baseRoles {
+		err = repo.Create(ctx, pgConn, RoleCreateParams{Name: roleName})
+		assert.NoError(t, err)
+	}
+
+	t.Cleanup(func() {
+		cleanupRoles := append(baseRoles, "test_role", "updated_role")
+		for _, roleName := range cleanupRoles {
+			_ = repo.Drop(ctx, pgConn, roleName)
+		}
+	})
 
 	// Test role parameters
 	testRoleParams := RoleCreateParams{
@@ -48,6 +139,9 @@ func TestRoleRepo_Integration(t *testing.T) {
 		ConnectionLimit: 5,
 		ValidUntil:      "infinity",
 		Comment:         "Test role",
+		InRole:          []string{"parent_role"},
+		Roles:           []string{"member_role"},
+		AdminRoles:      []string{"admin_role"},
 	}
 
 	// Test Create
@@ -78,6 +172,8 @@ func TestRoleRepo_Integration(t *testing.T) {
 		assert.False(t, model.BypassRLS.Bool)
 		assert.Equal(t, int32(5), model.ConnectionLimit.Int32)
 		assert.Equal(t, "Test role", model.Comment.String)
+		assert.ElementsMatch(t, []string{"parent_role", "member_role"}, model.Roles)
+		assert.ElementsMatch(t, []string{"admin_role"}, model.AdminRoles)
 	})
 
 	// Test Update
@@ -117,11 +213,9 @@ func TestRoleRepo_Integration(t *testing.T) {
 		assert.Equal(t, newComment, model.Comment.String)
 
 		// Update boolean options
-		superuser := true
-		createDB := true
 		updateBoolParams := RoleUpdateParams{
-			Superuser: &superuser,
-			CreateDB:  &createDB,
+			Superuser: new(true),
+			CreateDB:  new(true),
 		}
 
 		err = repo.Update(ctx, pgConn, newName, updateBoolParams)
@@ -134,9 +228,8 @@ func TestRoleRepo_Integration(t *testing.T) {
 		assert.True(t, model.CreateDB.Bool)
 
 		// Update connection limit
-		connectionLimit := int32(10)
 		updateConnLimitParams := RoleUpdateParams{
-			ConnectionLimit: &connectionLimit,
+			ConnectionLimit: new(int32(10)),
 		}
 
 		err = repo.Update(ctx, pgConn, newName, updateConnLimitParams)
@@ -146,6 +239,23 @@ func TestRoleRepo_Integration(t *testing.T) {
 		model, err = repo.GetOne(ctx, pgConn, newName)
 		assert.NoError(t, err)
 		assert.Equal(t, int32(10), model.ConnectionLimit.Int32)
+	})
+
+	// Test membership updates
+	t.Run("Update memberships", func(t *testing.T) {
+		newName := "updated_role"
+		updateMembershipParams := RoleUpdateParams{
+			Roles:      []string{"parent_role"},
+			AdminRoles: []string{"member_role"},
+		}
+
+		err = repo.Update(ctx, pgConn, newName, updateMembershipParams)
+		assert.NoError(t, err)
+
+		model, err = repo.GetOne(ctx, pgConn, newName)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{"parent_role"}, model.Roles)
+		assert.ElementsMatch(t, []string{"member_role"}, model.AdminRoles)
 	})
 
 	// Test Drop
@@ -162,10 +272,9 @@ func TestRoleRepo_Integration(t *testing.T) {
 
 	// Test creating role with password
 	t.Run("Create role with password", func(t *testing.T) {
-		password := "test_password"
 		roleWithPasswordParams := RoleCreateParams{
 			Name:     "role_with_password",
-			Password: &password,
+			Password: new("test_password"),
 			Login:    true,
 		}
 
@@ -191,13 +300,11 @@ func TestRoleRepo_Integration(t *testing.T) {
 		assert.Equal(t, "", result)
 
 		// Test with true value
-		trueVal := true
-		result = r.useBooleanOption("SUPERUSER", &trueVal)
+		result = r.useBooleanOption("SUPERUSER", new(true))
 		assert.Equal(t, "SUPERUSER", result)
 
 		// Test with false value
-		falseVal := false
-		result = r.useBooleanOption("SUPERUSER", &falseVal)
+		result = r.useBooleanOption("SUPERUSER", new(false))
 		assert.Equal(t, "NOSUPERUSER", result)
 	})
 }

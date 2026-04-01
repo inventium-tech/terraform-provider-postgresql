@@ -1,6 +1,8 @@
 package helpers
 
-import "slices"
+import (
+	"slices"
+)
 
 func CleanUpSlice[T ~[]E, E comparable](slice T) T {
 	if len(slice) == 0 {
@@ -54,6 +56,37 @@ func SliceMap[T, M any](s []T, f func(T) M) []M {
 	result := make([]M, 0, len(s))
 	for _, v := range s {
 		result = append(result, f(v))
+	}
+	return result
+}
+
+func SliceDifference[T comparable](a, b []T) []T {
+	setB := make(map[T]struct{}, len(b))
+	for _, v := range b {
+		setB[v] = struct{}{}
+	}
+
+	var result []T
+	for _, v := range a {
+		if _, found := setB[v]; !found {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+// SliceIntersection returns elements that appear in both slices
+func SliceIntersection[T comparable](a, b []T) []T {
+	setB := make(map[T]struct{}, len(b))
+	for _, v := range b {
+		setB[v] = struct{}{}
+	}
+
+	var result []T
+	for _, v := range a {
+		if _, found := setB[v]; found {
+			result = append(result, v)
+		}
 	}
 	return result
 }

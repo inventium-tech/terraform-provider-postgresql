@@ -127,16 +127,19 @@ output "role_names" {
 
 > **NOTE**: [Write-only arguments](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments) are supported in Terraform 1.11 and later.
 
+- `admin` (Set of String) Roles this role can administer (membership with admin option).
 - `bypass_rls` (Boolean) Determines whether the role bypasses every row-level security (RLS) policy. Default is `false`.
 - `comment` (String) Comment associated with the role
 - `connection_limit` (Number) The maximum number of concurrent connections the role can make. -1 means no limit. Default is `-1`.
 - `create_db` (Boolean) Determines whether the role can create new databases. Default is `false`.
 - `create_role` (Boolean) Determines whether the role can create new roles. Default is `false`.
+- `in_role` (Set of String) Roles to grant membership during creation (one-time). Changes force recreation.
 - `inherit` (Boolean) Determines whether the role inherits the privileges of roles it is a member of. Default is `true`.
 - `login` (Boolean) Determines whether the role can log in. Default is `false`.
 - `password_wo` (String, Sensitive, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) The password of the Postgresql role. This is a write-only attribute.
 - `password_wo_version` (Number) Increment this value to force a password update.
 - `replication` (Boolean) Determines whether the role can initiate streaming replication or put the system in and out of backup mode. Default is `false`.
+- `role` (Set of String) Roles this role belongs to (membership without admin option).
 - `superuser` (Boolean) Determines whether the role is a superuser who can override all access restrictions within the database. Default is `false`.
 - `valid_until` (String) The date and time after which the role's password is no longer valid. Default is 'infinity'.
 

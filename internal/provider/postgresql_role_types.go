@@ -22,6 +22,26 @@ type postgresqlRoleModel struct {
 	ValidUntil      types.String `tfsdk:"valid_until"`
 	Comment         types.String `tfsdk:"comment"`
 	LastUpdated     types.String `tfsdk:"last_updated"`
+	InRole          types.Set    `tfsdk:"in_role"`
+	Role            types.Set    `tfsdk:"role"`
+	Admin           types.Set    `tfsdk:"admin"`
+}
+
+type postgresqlRoleDataSourceModel struct {
+	Id              types.String `tfsdk:"id"`
+	Name            types.String `tfsdk:"name"`
+	Superuser       types.Bool   `tfsdk:"superuser"`
+	Inherit         types.Bool   `tfsdk:"inherit"`
+	CreateRole      types.Bool   `tfsdk:"create_role"`
+	CreateDB        types.Bool   `tfsdk:"create_db"`
+	Login           types.Bool   `tfsdk:"login"`
+	Replication     types.Bool   `tfsdk:"replication"`
+	BypassRLS       types.Bool   `tfsdk:"bypass_rls"`
+	ConnectionLimit types.Int32  `tfsdk:"connection_limit"`
+	ValidUntil      types.String `tfsdk:"valid_until"`
+	Comment         types.String `tfsdk:"comment"`
+	Role            types.Set    `tfsdk:"role"`
+	Admin           types.Set    `tfsdk:"admin"`
 }
 
 func (r *postgresqlRoleModel) buildPgRoleUpdateParams(stateModel *postgresqlRoleModel) pgclient.RoleUpdateParams {

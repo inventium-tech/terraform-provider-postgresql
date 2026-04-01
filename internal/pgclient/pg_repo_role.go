@@ -3,10 +3,11 @@ package pgclient
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgtype"
 	"slices"
 	"strings"
 	"terraform-provider-postgresql/internal/helpers"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // queries.
@@ -38,6 +39,14 @@ const (
 		WITH %s
 		CONNECTION LIMIT %d
 		VALID UNTIL '%s';`
+
+	selectRoleMembershipQuery = `
+SELECT granted.rolname AS role_name,
+       m.admin_option  AS admin_option
+FROM pg_catalog.pg_auth_members m
+JOIN pg_catalog.pg_roles granted ON granted.oid = m.roleid
+JOIN pg_catalog.pg_roles member ON member.oid = m.member
+WHERE member.rolname = $1;`
 )
 
 type RoleRepo interface {
@@ -65,34 +74,41 @@ type (
 		ConnectionLimit pgtype.Int4 `json:"connection_limit" validate:"boolean"`
 		ValidUntil      pgtype.Text `json:"valid_until" validate:"boolean"`
 		Comment         pgtype.Text `json:"comment" validate:"boolean"`
+		Roles           []string    `json:"roles"`
+		AdminRoles      []string    `json:"admin_roles"`
 	}
 	RoleCreateParams struct {
-		Name            string  `json:"name" validate:"required"`
-		Password        *string `json:"password"`
-		Superuser       bool    `json:"superuser"`
-		Inherit         bool    `json:"inherit"`
-		CreateRole      bool    `json:"create_role"`
-		CreateDB        bool    `json:"create_db"`
-		Login           bool    `json:"login"`
-		Replication     bool    `json:"replication"`
-		BypassRLS       bool    `json:"bypass_rls"`
-		ConnectionLimit int32   `json:"connection_limit"`
-		ValidUntil      string  `json:"valid_until"`
-		Comment         string  `json:"comment"`
+		Name            string   `json:"name" validate:"required"`
+		Password        *string  `json:"password"`
+		Superuser       bool     `json:"superuser"`
+		Inherit         bool     `json:"inherit"`
+		CreateRole      bool     `json:"create_role"`
+		CreateDB        bool     `json:"create_db"`
+		Login           bool     `json:"login"`
+		Replication     bool     `json:"replication"`
+		BypassRLS       bool     `json:"bypass_rls"`
+		ConnectionLimit int32    `json:"connection_limit"`
+		ValidUntil      string   `json:"valid_until"`
+		Comment         string   `json:"comment"`
+		InRole          []string `json:"in_role"`
+		Roles           []string `json:"roles"`
+		AdminRoles      []string `json:"admin_roles"`
 	}
 	RoleUpdateParams struct {
-		Name            *string `json:"name"`
-		Password        *string `json:"password"`
-		Superuser       *bool   `json:"superuser"`
-		Inherit         *bool   `json:"inherit"`
-		CreateRole      *bool   `json:"create_role"`
-		CreateDB        *bool   `json:"create_db"`
-		Login           *bool   `json:"login"`
-		Replication     *bool   `json:"replication"`
-		BypassRLS       *bool   `json:"bypass_rls"`
-		ConnectionLimit *int32  `json:"connection_limit"`
-		ValidUntil      *string `json:"valid_until"`
-		Comment         *string `json:"comment"`
+		Name            *string  `json:"name"`
+		Password        *string  `json:"password"`
+		Superuser       *bool    `json:"superuser"`
+		Inherit         *bool    `json:"inherit"`
+		CreateRole      *bool    `json:"create_role"`
+		CreateDB        *bool    `json:"create_db"`
+		Login           *bool    `json:"login"`
+		Replication     *bool    `json:"replication"`
+		BypassRLS       *bool    `json:"bypass_rls"`
+		ConnectionLimit *int32   `json:"connection_limit"`
+		ValidUntil      *string  `json:"valid_until"`
+		Comment         *string  `json:"comment"`
+		Roles           []string `json:"roles"`
+		AdminRoles      []string `json:"admin_roles"`
 	}
 )
 
@@ -148,7 +164,150 @@ func (r *roleRepo) Create(ctx context.Context, dbtx DBTX, params RoleCreateParam
 		return err
 	}
 
+	allRoles := append([]string{}, params.InRole...)
+	allRoles = append(allRoles, params.Roles...)
+
+	err = r.syncMembership(ctx, dbtx, params.Name, allRoles, params.AdminRoles)
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (r *roleRepo) syncMembership(ctx context.Context, dbtx DBTX, member string, roles []string, adminRoles []string) error {
+	if roles == nil && adminRoles == nil {
+		return nil
+	}
+
+	memberName, err := sanitizeInput(member, SanitizeIdentifier)
+	if err != nil {
+		return fmt.Errorf("invalid member role name %q. error: %w", member, err)
+	}
+
+	desired, err := buildDesiredMembershipMap(roles, adminRoles)
+	if err != nil {
+		return err
+	}
+
+	current, err := r.getMembership(ctx, dbtx, memberName)
+	if err != nil {
+		return err
+	}
+
+	for roleName, currentAdmin := range current {
+		desiredAdmin, ok := desired[roleName]
+		switch {
+		case !ok:
+			if err := r.revokeMembership(ctx, dbtx, roleName, memberName); err != nil {
+				return err
+			}
+		case desiredAdmin != currentAdmin:
+			if err := r.revokeMembership(ctx, dbtx, roleName, memberName); err != nil {
+				return err
+			}
+
+			if err := r.grantMembership(ctx, dbtx, roleName, memberName, desiredAdmin); err != nil {
+				return err
+			}
+		}
+	}
+
+	for roleName, desiredAdmin := range desired {
+		if _, ok := current[roleName]; ok {
+			continue
+		}
+
+		if err := r.grantMembership(ctx, dbtx, roleName, memberName, desiredAdmin); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *roleRepo) grantMembership(ctx context.Context, dbtx DBTX, roleName, memberName string, adminOption bool) error {
+	query := fmt.Sprintf("GRANT %s TO %s", roleName, memberName)
+	if adminOption {
+		query += " WITH ADMIN OPTION"
+	}
+
+	_, err := dbtx.Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("failed to grant role %s to %s: %w", roleName, memberName, err)
+	}
+
+	return nil
+}
+
+func (r *roleRepo) revokeMembership(ctx context.Context, dbtx DBTX, roleName, memberName string) error {
+	query := fmt.Sprintf("REVOKE %s FROM %s", roleName, memberName)
+	_, err := dbtx.Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("failed to revoke role %s from %s: %w", roleName, memberName, err)
+	}
+
+	return nil
+}
+
+func (r *roleRepo) getMembership(ctx context.Context, dbtx DBTX, memberName string) (map[string]bool, error) {
+	memberships := make(map[string]bool)
+
+	rows, err := dbtx.Query(ctx, selectRoleMembershipQuery, memberName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list memberships for %s: %w", memberName, err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var roleName string
+		var adminOption bool
+
+		if err := rows.Scan(&roleName, &adminOption); err != nil {
+			return nil, fmt.Errorf("failed to scan membership for %s: %w", memberName, err)
+		}
+
+		memberships[roleName] = adminOption
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	return memberships, nil
+}
+
+func buildDesiredMembershipMap(roles []string, adminRoles []string) (map[string]bool, error) {
+	desired := make(map[string]bool)
+
+	for _, roleName := range roles {
+		if roleName == "" {
+			continue
+		}
+
+		sanitized, err := sanitizeInput(roleName, SanitizeIdentifier)
+		if err != nil {
+			return nil, fmt.Errorf("invalid role membership %q. error: %w", roleName, err)
+		}
+
+		desired[sanitized] = false
+	}
+
+	for _, roleName := range adminRoles {
+		if roleName == "" {
+			continue
+		}
+
+		sanitized, err := sanitizeInput(roleName, SanitizeIdentifier)
+		if err != nil {
+			return nil, fmt.Errorf("invalid admin membership %q. error: %w", roleName, err)
+		}
+
+		desired[sanitized] = true
+	}
+
+	return desired, nil
 }
 
 func (r *roleRepo) Update(ctx context.Context, dbtx DBTX, name string, params RoleUpdateParams) error {
@@ -196,6 +355,8 @@ func (r *roleRepo) Update(ctx context.Context, dbtx DBTX, name string, params Ro
 		}
 	}
 
+	targetName := name
+
 	if params.Name != nil && *params.Name != "" {
 		roleName, err := sanitizeInput(*params.Name, SanitizeIdentifier)
 		if err != nil {
@@ -206,6 +367,13 @@ func (r *roleRepo) Update(ctx context.Context, dbtx DBTX, name string, params Ro
 			return err
 		}
 
+		targetName = roleName
+	}
+
+	if params.Roles != nil || params.AdminRoles != nil {
+		if err := r.syncMembership(ctx, dbtx, targetName, params.Roles, params.AdminRoles); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -255,6 +423,23 @@ func (r *roleRepo) GetOne(ctx context.Context, dbtx DBTX, name string) (*RoleMod
 	if err != nil {
 		return nil, fmt.Errorf("failed to get role %s: %w", name, err)
 	}
+
+	memberships, err := r.getMembership(ctx, dbtx, model.Name.String)
+	if err != nil {
+		return nil, err
+	}
+
+	for roleName, adminOption := range memberships {
+		if adminOption {
+			model.AdminRoles = append(model.AdminRoles, roleName)
+			continue
+		}
+
+		model.Roles = append(model.Roles, roleName)
+	}
+
+	slices.Sort(model.Roles)
+	slices.Sort(model.AdminRoles)
 
 	return &model, nil
 }

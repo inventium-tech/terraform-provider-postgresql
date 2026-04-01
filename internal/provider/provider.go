@@ -175,6 +175,8 @@ func (p *PostgresqlProvider) Resources(context.Context) []func() resource.Resour
 	return []func() resource.Resource{
 		NewPostgresqlDatabaseResource,
 		NewPostgresqlEventTriggerResource,
+		NewPostgresqlExtensionResource,
+		NewPostgresqlGrantResource,
 		NewPostgresqlRoleResource,
 		NewPostgresqlSchemaResource,
 		NewPostgresqlUserFunctionResource,
@@ -185,6 +187,8 @@ func (p *PostgresqlProvider) DataSources(context.Context) []func() datasource.Da
 	return []func() datasource.DataSource{
 		NewPostgresqlDatabaseDataSource,
 		NewPostgresqlEventTriggerDataSource,
+		NewPostgresqlExtensionDataSource,
+		NewPostgresqlRoleDataSource,
 		NewPostgresqlSchemaDataSource,
 		NewPostgresqlSchemasDataSource,
 	}

@@ -2,12 +2,14 @@ package provider
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"terraform-provider-postgresql/internal/helpers"
 	"terraform-provider-postgresql/internal/test"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -19,6 +21,10 @@ func TestAccPostgresqlRoleResource(t *testing.T) {
 		Username: "test_role_resource_user",
 	}
 	test.LoadPostgresTestContainer(t, runOpts, true)
+
+	supportInRoleName := "support_in_role"
+	supportRoleName := "support_role"
+	supportAdminRoleName := "support_admin_role"
 
 	mockRolePasswd := types.StringValue("test_password")
 	mockRoleModel := postgresqlRoleModel{
@@ -32,6 +38,9 @@ func TestAccPostgresqlRoleResource(t *testing.T) {
 		Replication:     types.BoolValue(false),
 		BypassRLS:       types.BoolValue(false),
 		ConnectionLimit: types.Int32Value(-1),
+		InRole:          types.SetValueMust(types.StringType, []attr.Value{types.StringValue(supportInRoleName)}),
+		Role:            types.SetValueMust(types.StringType, []attr.Value{types.StringValue(supportRoleName)}),
+		Admin:           types.SetValueMust(types.StringType, []attr.Value{types.StringValue(supportAdminRoleName)}),
 		Comment:         types.StringValue("test role"),
 	}
 
@@ -63,6 +72,12 @@ func TestAccPostgresqlRoleResource(t *testing.T) {
 					resource.TestCheckResourceAttr(mockResourceName, "replication", strconv.FormatBool(mockRoleModel.Replication.ValueBool())),
 					resource.TestCheckResourceAttr(mockResourceName, "bypass_rls", strconv.FormatBool(mockRoleModel.BypassRLS.ValueBool())),
 					resource.TestCheckResourceAttr(mockResourceName, "connection_limit", strconv.FormatInt(int64(mockRoleModel.ConnectionLimit.ValueInt32()), 10)),
+					resource.TestCheckResourceAttr(mockResourceName, "in_role.#", "1"),
+					resource.TestCheckResourceAttr(mockResourceName, "role.#", "1"),
+					resource.TestCheckResourceAttr(mockResourceName, "admin.#", "1"),
+					resource.TestCheckTypeSetElemAttr(mockResourceName, "in_role.*", supportInRoleName),
+					resource.TestCheckTypeSetElemAttr(mockResourceName, "role.*", supportRoleName),
+					resource.TestCheckTypeSetElemAttr(mockResourceName, "admin.*", supportAdminRoleName),
 					resource.TestCheckResourceAttr(mockResourceName, "comment", mockRoleModel.Comment.ValueString()),
 					resource.TestCheckResourceAttr(mockResourceName, "password_wo_version", strconv.FormatInt(int64(mockRoleModel.PasswordVersion.ValueInt32()), 10)),
 					// Password is sensitive and write-only, so we don't check it
@@ -70,10 +85,11 @@ func TestAccPostgresqlRoleResource(t *testing.T) {
 			},
 			{
 				// ImportState testing
+				// Note: in_role is a create-time only attribute, so during import all memberships go into role
 				ResourceName:            mockResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"last_updated", "password_wo", "password_wo_version"},
+				ImportStateVerifyIgnore: []string{"last_updated", "password_wo", "password_wo_version", "in_role", "role"},
 				Destroy:                 false,
 			},
 			{
@@ -109,6 +125,9 @@ func TestAccPostgresqlRoleResource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(mockResourceName, "name", mockRoleModel.Name.ValueString()),
 					resource.TestCheckResourceAttr(mockResourceName, "login", strconv.FormatBool(mockUpdatedLogin.ValueBool())),
+					resource.TestCheckResourceAttr(mockResourceName, "in_role.#", "1"),
+					resource.TestCheckResourceAttr(mockResourceName, "role.#", "1"),
+					resource.TestCheckResourceAttr(mockResourceName, "admin.#", "1"),
 				),
 			},
 		},
@@ -119,6 +138,19 @@ func testAccFormatRoleResource(t *testing.T, resName string, m postgresqlRoleMod
 	t.Helper()
 
 	result := make([]string, 0)
+
+	supportingRoles := collectSupportRoles(t, []types.Set{m.InRole, m.Role, m.Admin})
+
+	for _, supportingRole := range supportingRoles {
+		result = append(result,
+			fmt.Sprintf(`resource "postgresql_role" "%s" {`, supportingRole),
+			fmt.Sprintf(`name = "%s"`, supportingRole),
+			"login = false",
+			"}",
+			"",
+		)
+	}
+
 	result = append(result,
 		fmt.Sprintf(`resource "postgresql_role" "%s" {`, resName),
 		test.FormatTerraformAttribute(t, m.Name, "name"),
@@ -143,6 +175,9 @@ func testAccFormatRoleResource(t *testing.T, resName string, m postgresqlRoleMod
 		test.FormatTerraformAttribute(t, m.Replication, "replication"),
 		test.FormatTerraformAttribute(t, m.BypassRLS, "bypass_rls"),
 		test.FormatTerraformAttribute(t, m.ConnectionLimit, "connection_limit"),
+		test.FormatTerraformAttribute(t, m.InRole, "in_role"),
+		test.FormatTerraformAttribute(t, m.Role, "role"),
+		test.FormatTerraformAttribute(t, m.Admin, "admin"),
 	)
 
 	// Only include valid_until if it's not null
@@ -155,8 +190,47 @@ func testAccFormatRoleResource(t *testing.T, resName string, m postgresqlRoleMod
 		result = append(result, test.FormatTerraformAttribute(t, m.Comment, "comment"))
 	}
 
+	if len(supportingRoles) > 0 {
+		deps := make([]string, 0, len(supportingRoles))
+		for _, supportingRole := range supportingRoles {
+			deps = append(deps, fmt.Sprintf("postgresql_role.%s", supportingRole))
+		}
+
+		result = append(result, fmt.Sprintf("depends_on = [%s]", strings.Join(deps, ", ")))
+	}
+
 	result = append(result, "}")
 
 	result = helpers.CleanUpSlice(result)
 	return strings.Join(result, "\n")
+}
+
+func collectSupportRoles(t *testing.T, sets []types.Set) []string {
+	t.Helper()
+
+	rolesMap := make(map[string]struct{})
+
+	for _, setValue := range sets {
+		if setValue.IsNull() || setValue.IsUnknown() {
+			continue
+		}
+
+		for _, element := range setValue.Elements() {
+			strValue, ok := element.(types.String)
+			if !ok {
+				t.Fatalf("expected types.String in membership set, got %T", element)
+			}
+
+			rolesMap[strValue.ValueString()] = struct{}{}
+		}
+	}
+
+	result := make([]string, 0, len(rolesMap))
+	for roleName := range rolesMap {
+		result = append(result, roleName)
+	}
+
+	slices.Sort(result)
+
+	return result
 }
